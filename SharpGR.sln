@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpGR", "SharpGR\SharpGR.csproj", "{8E23D7D1-B963-4DB5-B67E-58FE0FD81B61}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E23D7D1-B963-4DB5-B67E-58FE0FD81B61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E23D7D1-B963-4DB5-B67E-58FE0FD81B61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E23D7D1-B963-4DB5-B67E-58FE0FD81B61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E23D7D1-B963-4DB5-B67E-58FE0FD81B61}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
