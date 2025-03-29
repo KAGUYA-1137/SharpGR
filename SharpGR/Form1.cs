@@ -201,6 +201,7 @@ namespace SharpGR
                 if (waveOut != null)
                 {
                     waveOut.Stop();
+                    timer1.Stop();
                     buttonPlay.Text = "çƒê∂";
                 }
             }
