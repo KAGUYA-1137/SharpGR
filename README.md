@@ -11,7 +11,7 @@ Lunar SpotlightMediaさんが運営するGensokyo Radio（幻想郷ラジオ）�
 ![image](https://github.com/user-attachments/assets/1585c3c9-7f2c-4499-a7c2-0b49f26aa449)
 
 # 注意
-・アプリ上で視聴、表示される楽曲やアートワークの著作権はそれぞれの所有者が有しています  
-・東方Projectは上海アリス幻樂団の主宰「ZUN」さんの著作物です  
+・アプリ上で視聴、表示される楽曲やアートワークの著作権はそれぞれの所有者が有しています。  
+・東方Projectは上海アリス幻樂団の主宰「ZUN」さんの著作物です。  
 ・Gensokyo Radio is trademarks of Gensokyo Radio / LunarSpotlight Media  
-・SharpGRは私（KAGUYA_1137）の著作物です
+・SharpGRは私（KAGUYA_1137）の著作物です。無断でのアプリの複製や改変等、著作権を侵害する行為を禁じます。
