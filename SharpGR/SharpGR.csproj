@@ -6,27 +6,19 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <FileVersion>0.0.0.2</FileVersion>
+    <AssemblyVersion>0.0.0.2</AssemblyVersion>
+    <NeutralLanguage>ja-JP</NeutralLanguage>
+    <Copyright>KAGUYA_1137</Copyright>
   </PropertyGroup>
 
-  <ItemGroup>
-    <COMReference Include="WMPLib">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>6bf52a50-394a-11d3-b153-00c04f79faa6</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="AxWMPLib">
-      <WrapperTool>aximp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>6bf52a50-394a-11d3-b153-00c04f79faa6</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-    </COMReference>
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />

@@ -8,40 +8,49 @@ namespace SharpGR.FileIO
     public class JsonUtility
     {
         /// <summary>
-        /// 設定ファイルへ書き込み
+        /// 設定ファイルへ設定を書き込み
         /// </summary>
         /// <param name="fileName">ファイル名</param>
         /// <param name="data">書き込むデータ</param>
-        public static void WriteJson(string fileName, SettingInfo data)
+        /// <returns><see cref="bool"/>。設定を書き込めたらtrue、それ以外はfalse</returns>
+        public static bool WriteJson(string fileName, SettingInfo data)
         {
-            SettingInfo settingInfo = new SettingInfo();
-            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            File.WriteAllText(fileName, json);
+            try
+            {
+                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                File.WriteAllText(fileName, json);
+                return true;
+            }
+
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
-        /// 設定ファイルから設定読み込み
+        /// 設定ファイルから設定を読み込み
         /// </summary>
         /// <param name="fileName">ファイル名</param>
-        /// <returns></returns>
-        public static SettingInfo ReadJson(string fileName)
+        /// <returns><see cref="SettingInfo"/></returns>
+        public static SettingInfo? ReadJson(string fileName)
         {
-            string json = string.Empty;
             SettingInfo settingInfo = new SettingInfo();
+
             try
             {
-                json = File.ReadAllText(fileName);
+                string json = File.ReadAllText(fileName);
                 settingInfo = JsonConvert.DeserializeObject<SettingInfo>(json);
+
+                // 設定ファイルから設定を読み込めたら読み込んだ情報を返す
+                return settingInfo;
             }
+
             catch
             {
-                throw;
+                // 読み込めなかったらnullを返す
+                return null;
             }
-            finally
-            {
-                json = string.Empty;
-            }
-            return settingInfo;
         }
     }
 }

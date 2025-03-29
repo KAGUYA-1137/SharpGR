@@ -23,8 +23,8 @@
         #region Windows Form Designer generated code
 
         /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
+        ///  デザイナーのサポートに必要なメソッドです。
+        ///  コード エディターでこのメソッドの内容を変更しないでください。
         /// </summary>
         private void InitializeComponent()
         {
@@ -57,9 +57,11 @@
             ClientSize = new Size(320, 145);
             Controls.Add(label2);
             Controls.Add(label1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FormHelp";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "FormHelp";
             Load += FormHelp_Load;
             KeyDown += FormHelp_KeyDown;

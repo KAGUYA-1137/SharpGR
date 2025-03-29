@@ -11,8 +11,18 @@ namespace SharpGR
 
         private void FormHelp_Load(object sender, EventArgs e)
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            Text = $"{assembly.GetName().Name}　操作方法";
+            try
+            {
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                Text = $"{assembly.GetName().Name}　操作方法";
+            }
+
+            catch
+            {
+                Form1 form1 = new Form1();
+                form1.toolStripStatusLabel1.ForeColor = Color.Red;
+                form1.toolStripStatusLabel1.Text = $"{Text}画面の表示中にエラーが発生しました";
+            }
         }
 
         private void FormHelp_KeyDown(object sender, KeyEventArgs e)
@@ -22,8 +32,9 @@ namespace SharpGR
                 case Keys.Escape:
                     Close();
                     break;
+                default:
+                    break;
             }
         }
-
     }
 }

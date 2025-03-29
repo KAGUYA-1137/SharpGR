@@ -23,8 +23,8 @@
         #region Windows Form Designer generated code
 
         /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
+        ///  デザイナーのサポートに必要なメソッドです。
+        ///  コード エディターでこのメソッドの内容を変更しないでください。
         /// </summary>
         private void InitializeComponent()
         {
@@ -161,11 +161,15 @@
             Controls.Add(tabControl1);
             Controls.Add(labelVersion);
             Controls.Add(label1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            KeyPreview = true;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FormAbout";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "FormAbout";
             Load += FormAbout_Load;
+            KeyDown += FormAbout_KeyDown;
             tabControl1.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
