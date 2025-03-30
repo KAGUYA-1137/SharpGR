@@ -10,10 +10,29 @@
 
     public class SONGINFO
     {
+        /// <summary>
+        /// タイトル名
+        /// </summary>
         public string TITLE { get; set; }
+
+        /// <summary>
+        /// アーティスト名
+        /// </summary>
         public string ARTIST { get; set; }
+
+        /// <summary>
+        /// アルバム名
+        /// </summary>
         public string ALBUM { get; set; }
+
+        /// <summary>
+        /// リリース年
+        /// </summary>
         public string YEAR { get; set; }
+
+        /// <summary>
+        /// サークル名
+        /// </summary>
         public string CIRCLE { get; set; }
     }
 
@@ -37,7 +56,12 @@
     public class MISC
     {
         public string CIRCLELINK { get; set; }
+
+        /// <summary>
+        /// アルバムアートのファイル名
+        /// </summary>
         public string ALBUMART { get; set; }
+
         public string CIRCLEART { get; set; }
         public string OFFSET { get; set; }
         public int OFFSETTIME { get; set; }
