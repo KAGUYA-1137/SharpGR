@@ -1,4 +1,4 @@
-using System.Reflection;
+ï»¿using System.Reflection;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using SharpGR.FileIO;
@@ -6,18 +6,26 @@ using SharpGR.FileIO;
 namespace SharpGR
 {
     /// <summary>
-    /// Form1‚ÌƒNƒ‰ƒX
+    /// Form1ã®ã‚¯ãƒ©ã‚¹
     /// </summary>
     public partial class Form1 : Form
     {
         private readonly WaveOutEvent waveOut = new WaveOutEvent();
-        private readonly MediaFoundationReader reader = new MediaFoundationReader("https://stream.gensokyoradio.net/3");
-        private SettingInfo settingInfo = new SettingInfo();
-        private SongAPI songAPI = new SongAPI();
+        private readonly MediaFoundationReader reader = new MediaFoundationReader(Constants.STREAM_ENDPOINT);
         private string ErrorMessage = string.Empty;
-        private string urlInfoJson = "https://gensokyoradio.net/api/station/playing/";
-        private string urlAlbumArt = "https://gensokyoradio.net/images/albums/500/";
+        private SettingInfo settingInfo = new SettingInfo();
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private SongAPI? songAPI = new SongAPI();
+
+        /// <summary>
+        /// ç·å†ç”Ÿæ™‚é–“
+        /// </summary>
+        /// 
         private int Duration;
+
+        /// <summary>
+        /// ç¾åœ¨ã®å†ç”Ÿæ™‚é–“
+        /// </summary>
         private int Played;
 
         public Form1()
@@ -26,7 +34,7 @@ namespace SharpGR
         }
 
         /// <summary>
-        /// ƒƒCƒ“‰æ–Êƒ[ƒh
+        /// ãƒ¡ã‚¤ãƒ³ç”»é¢ãƒ­ãƒ¼ãƒ‰æ™‚
         /// </summary>
         private async void Form1_Load(object sender, EventArgs e)
         {
@@ -36,29 +44,38 @@ namespace SharpGR
         }
 
         /// <summary>
-        /// İ’è“Ç‚İ‚İ
+        /// ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤º
+        /// </summary>
+        /// <param name="message">ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸</param>
+        private void SetErrorMessage(string message)
+        {
+            toolStripStatusLabel1.ForeColor = Color.Red;
+            toolStripStatusLabel1.Text = message;
+        }
+
+        /// <summary>
+        /// è¨­å®šèª­ã¿è¾¼ã¿
         /// </summary>
         public async Task ReadSettings()
         {
-            // İ’èƒtƒ@ƒCƒ‹‚ª‘¶İ‚µ‚È‚¢ê‡
+            // è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ãªã„å ´åˆ
             if (!File.Exists(Constants.FORM_MAIN_SETTING_FILE_NAME))
             {
-                // İ’èƒtƒ@ƒCƒ‹‚ğì¬‚µ‚ÄƒfƒtƒHƒ‹ƒg‚Ìİ’è’l‚ğ‘‚«‚İ
+                // è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆã—ã¦ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®è¨­å®šå€¤ã‚’æ›¸ãè¾¼ã¿
                 if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
                 {
-                    ErrorMessage = "ƒfƒtƒHƒ‹ƒg‚Ìİ’è’l‚ğİ’èƒtƒ@ƒCƒ‹‚Ö‘‚«‚ß‚Ü‚¹‚ñ‚Å‚µ‚½";
-                    MessageBox.Show(ErrorMessage, "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    toolStripStatusLabel1.ForeColor = Color.Red;
-                    toolStripStatusLabel1.Text = ErrorMessage;
+                    ErrorMessage = "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®è¨­å®šå€¤ã‚’è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã¸æ›¸ãè¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸ";
+                    MessageBox.Show(ErrorMessage, "ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    SetErrorMessage(ErrorMessage);
                 }
             }
 
-            // İ’èƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚ß‚½
+            // è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚ãŸæ™‚
             if (JsonUtility.ReadJson(Constants.FORM_MAIN_SETTING_FILE_NAME) != null)
             {
                 settingInfo = JsonUtility.ReadJson(Constants.FORM_MAIN_SETTING_FILE_NAME);
 
-                // ‰¹—Ê‚ğ”½‰f‚·‚é
+                // éŸ³é‡ã‚’åæ˜ ã™ã‚‹
                 trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
                 numericUpDownVol.Text = settingInfo.Volume.ToString();
 
@@ -73,15 +90,14 @@ namespace SharpGR
                 }
             }
 
-            // İ’èƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚ß‚È‚©‚Á‚½
+            // è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚ãªã‹ã£ãŸæ™‚
             else
             {
-                ErrorMessage = "İ’è‚ğ“Ç‚İ‚ß‚Ü‚¹‚ñ‚Å‚µ‚½AƒfƒtƒHƒ‹ƒg‚Ìİ’è’l‚ğg—p‚µ‚Ü‚·B";
-                MessageBox.Show(ErrorMessage, "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = ErrorMessage;
+                ErrorMessage = "è¨­å®šã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸã€ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®è¨­å®šå€¤ã‚’ä½¿ç”¨ã—ã¾ã™ã€‚";
+                MessageBox.Show(ErrorMessage, "ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetErrorMessage(ErrorMessage);
 
-                // ‰¹—Ê‚ğ”½‰f‚·‚é
+                // éŸ³é‡ã‚’åæ˜ ã™ã‚‹
                 trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
                 numericUpDownVol.Text = settingInfo.Volume.ToString();
 
@@ -98,7 +114,7 @@ namespace SharpGR
         }
 
         /// <summary>
-        /// Ä¶/’â~ƒ{ƒ^ƒ“‰Ÿ‰º
+        /// å†ç”Ÿ/åœæ­¢ãƒœã‚¿ãƒ³æŠ¼ä¸‹æ™‚
         /// </summary>
         private async void buttonPlay_Click(object sender, EventArgs e)
         {
@@ -114,35 +130,37 @@ namespace SharpGR
         }
 
         /// <summary>
-        /// Œ¶‘z‹½ƒ‰ƒWƒI‚ğÄ¶
+        /// å¹»æƒ³éƒ·ãƒ©ã‚¸ã‚ªã‚’å†ç”Ÿ
         /// </summary>
         private async Task StartRadioAsync()
         {
             try
             {
                 waveOut.Init(reader);
-                await getSongFromAPIAsync();
+                await GetSongInfoFromAPIAsync();
                 timer1.Start();
                 waveOut.Play();
-                buttonPlay.Text = "’â~";
+                buttonPlay.Text = "åœæ­¢";
             }
 
             catch (Exception ex)
             {
-                ErrorMessage = "Ä¶’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½";
+                ErrorMessage = "å†ç”Ÿä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ";
                 MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = ErrorMessage;
+                SetErrorMessage(ErrorMessage);
             }
         }
 
+        /// <summary>
+        /// 1ç§’ã”ã¨ã«æ›²æƒ…å ±å–å¾—
+        /// </summary>
         private async void timer1_Tick(object sender, EventArgs e)
         {
-            await getSongFromAPIAsync();
+            await GetSongInfoFromAPIAsync();
 
             trackBarDuration.Maximum = Duration;
 
-            if (Played < Duration)
+            if (Played <= Duration)
             {
                 trackBarDuration.Value = Played;
             }
@@ -154,45 +172,64 @@ namespace SharpGR
             }
         }
 
-        private async Task getSongFromAPIAsync()
+        /// <summary>
+        /// å¹»æƒ³éƒ·ãƒ©ã‚¸ã‚ªã§å†ç”Ÿä¸­ã®æ¥½æ›²æƒ…å ±ã‚’éåŒæœŸã§å–å¾—
+        /// </summary>
+        private async Task GetSongInfoFromAPIAsync()
         {
             try
             {
-                HttpClient httpClient = new HttpClient();
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, urlInfoJson);
-                HttpResponseMessage response = await httpClient.SendAsync(request);
+                // HTTPãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’ä½œæˆ
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.MUSIC_INFO_JSON);
+                // HTTPãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’é€ä¿¡
+                HttpResponseMessage response = await _httpClient.SendAsync(request);
+                // ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒœãƒ‡ã‚£ã‚’å–å¾—
                 string resBody = await response.Content.ReadAsStringAsync();
 
+                // ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒœãƒ‡ã‚£ã‚’ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚º
                 songAPI = JsonConvert.DeserializeObject<SongAPI>(resBody);
 
-                Namelabel.Text = songAPI.SONGINFO.TITLE;
-                Artistlabel.Text = songAPI.SONGINFO.ARTIST;
-                Albumlabel.Text = songAPI.SONGINFO.ALBUM;
-                Yearlabel.Text = songAPI.SONGINFO.YEAR;
-                Circlelabel.Text = songAPI.SONGINFO.CIRCLE;
-                Duration = songAPI.SONGTIMES.DURATION;
-                Played = songAPI.SONGTIMES.PLAYED;
-                Timelabel.Text = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";
-
-                // ƒAƒ‹ƒoƒ€ƒA[ƒg‚ª‹ó‚Ì‚Æ‚«(ƒCƒ“ƒ^[ƒ~ƒbƒVƒ‡ƒ“Ä¶‚Æ‚©)
-                if (songAPI.MISC.ALBUMART == string.Empty)
+                if (songAPI != null)
                 {
-                    AlbumArtpictureBox.ImageLocation = "https://gensokyoradio.net/images/assets/gr-logo-placeholder.png";
+                    // ãƒ‡ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºã—ãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‹ã‚‰æ¥½æ›²æƒ…å ±ã‚’å–å¾—
+                    Namelabel.Text = songAPI.SONGINFO.TITLE;    // æ¥½æ›²ã®ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¨­å®š
+                    Artistlabel.Text = songAPI.SONGINFO.ARTIST; // ã‚¢ãƒ¼ãƒ†ã‚£ã‚¹ãƒˆåã‚’è¨­å®š
+                    Albumlabel.Text = songAPI.SONGINFO.ALBUM;   // ã‚¢ãƒ«ãƒãƒ åã‚’è¨­å®š
+                    //Yearlabel.Text = songAPI.SONGINFO.YEAR;   // ãƒªãƒªãƒ¼ã‚¹å¹´ã‚’è¨­å®š
+                    //Circlelabel.Text = songAPI.SONGINFO.CIRCLE;   // ã‚µãƒ¼ã‚¯ãƒ«åã‚’è¨­å®š
+                    Duration = songAPI.SONGTIMES.DURATION;  // æ¥½æ›²ã®ç·å†ç”Ÿæ™‚é–“ã‚’è¨­å®š
+                    Played = songAPI.SONGTIMES.PLAYED;  // ç¾åœ¨ã®å†ç”Ÿæ™‚é–“ã‚’è¨­å®š
+                    Timelabel.Text = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration)
+                        .ToString(@"m\:ss")}";    // ç·å†ç”Ÿæ™‚é–“ã¨ç¾åœ¨ã®å†ç”Ÿæ™‚é–“ã‚’è¡¨ç¤º
+
+                    // ã‚¢ãƒ«ãƒãƒ ã‚¢ãƒ¼ãƒˆãŒç©ºã®ã¨ã
+                    if (songAPI.MISC.ALBUMART == string.Empty)
+                    {
+                        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚¢ãƒ«ãƒãƒ ã‚¢ãƒ¼ãƒˆã‚’è¡¨ç¤º
+                        AlbumArtpictureBox.ImageLocation = "https://gensokyoradio.net/images/assets/gr-logo-placeholder.png";
+                    }
+                    else
+                    {
+                        /* ã‚¢ãƒ«ãƒãƒ ã‚¢ãƒ¼ãƒˆå–å¾—å…ˆã®ãƒ—ãƒ¬ãƒ•ã‚£ãƒƒã‚¯ã‚¹ã¨å†ç”Ÿä¸­ã®æ¥½æ›²ã®ã‚¢ãƒ«ãƒãƒ ã‚¢ãƒ¼ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’åˆä½“ã—ã¦ã€
+                        å†ç”Ÿä¸­ã®æ¥½æ›²ã®ã‚¢ãƒ«ãƒãƒ ã‚¢ãƒ¼ãƒˆã®ãƒ‘ã‚¹ã‚’ç‰¹å®š */
+                        AlbumArtpictureBox.ImageLocation = $"{Constants.ALBUM_ART_PREFIX}{songAPI.MISC.ALBUMART}";
+                    }
                 }
                 else
                 {
-                    AlbumArtpictureBox.ImageLocation = $"{urlAlbumArt}{songAPI.MISC.ALBUMART}";
+                    throw new NullReferenceException("æ¥½æ›²æƒ…å ±ã‚’å–å¾—ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                ErrorMessage = ex.Message;
+                MessageBox.Show(ErrorMessage, "ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetErrorMessage(ErrorMessage);
             }
         }
 
         /// <summary>
-        /// Œ¶‘z‹½ƒ‰ƒWƒI‚ğ’â~
+        /// å¹»æƒ³éƒ·ãƒ©ã‚¸ã‚ªã‚’åœæ­¢
         /// </summary>
         private void StopRadio()
         {
@@ -202,33 +239,32 @@ namespace SharpGR
                 {
                     waveOut.Stop();
                     timer1.Stop();
-                    buttonPlay.Text = "Ä¶";
+                    buttonPlay.Text = "å†ç”Ÿ";
                 }
             }
 
             catch (Exception ex)
             {
-                ErrorMessage = "’â~’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½";
+                ErrorMessage = "åœæ­¢ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ";
                 MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = ErrorMessage;
+                SetErrorMessage(ErrorMessage);
             }
         }
 
-        private void ‘€ì•û–@ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void æ“ä½œæ–¹æ³•ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FormHelp formHelp = new FormHelp();
             formHelp.Show();
         }
 
-        private void sharpGR‚É‚Â‚¢‚ÄToolStripMenuItem_Click(object sender, EventArgs e)
+        private void sharpGRã«ã¤ã„ã¦ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FormAbout formAbout = new FormAbout();
             formAbout.Show();
         }
 
         /// <summary>
-        /// ‰¹—Ê•ÏX(ƒgƒ‰ƒbƒNƒo[)
+        /// éŸ³é‡å¤‰æ›´æ™‚(ãƒˆãƒ©ãƒƒã‚¯ãƒãƒ¼)
         /// </summary>
         private void trackBarVol_Scroll(object sender, EventArgs e)
         {
@@ -243,15 +279,14 @@ namespace SharpGR
 
             catch (Exception ex)
             {
-                ErrorMessage = "‰¹—Ê‚Ì•ÏX’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½";
+                ErrorMessage = "éŸ³é‡ã®å¤‰æ›´ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ";
                 MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = ErrorMessage;
+                SetErrorMessage(ErrorMessage);
             }
         }
 
         /// <summary>
-        /// ‰¹—Ê•ÏX(ƒXƒsƒ“ƒ{ƒbƒNƒX)
+        /// éŸ³é‡å¤‰æ›´æ™‚(ã‚¹ãƒ”ãƒ³ãƒœãƒƒã‚¯ã‚¹)
         /// </summary>
         private void numericUpDownVol_ValueChanged(object sender, EventArgs e)
         {
@@ -266,10 +301,9 @@ namespace SharpGR
 
             catch (Exception ex)
             {
-                ErrorMessage = "‰¹—Ê‚Ì•ÏX’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½";
+                ErrorMessage = "éŸ³é‡ã®å¤‰æ›´ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ";
                 MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                toolStripStatusLabel1.ForeColor = Color.Red;
-                toolStripStatusLabel1.Text = ErrorMessage;
+                SetErrorMessage(ErrorMessage);
             }
         }
 
@@ -289,11 +323,11 @@ namespace SharpGR
         {
             switch (buttonPlay.Text)
             {
-                case "Ä¶":
+                case "å†ç”Ÿ":
                     settingInfo.PlaybackState = PlaybackState.Stopped;
                     settingInfo.Volume = Convert.ToInt32(numericUpDownVol.Text);
                     break;
-                case "’â~":
+                case "åœæ­¢":
                     settingInfo.PlaybackState = PlaybackState.Playing;
                     settingInfo.Volume = Convert.ToInt32(numericUpDownVol.Text);
                     break;
@@ -308,7 +342,7 @@ namespace SharpGR
 
             catch (Exception ex)
             {
-                MessageBox.Show("İ’è‚Ì‘‚«‚İ’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("è¨­å®šã®æ›¸ãè¾¼ã¿ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
