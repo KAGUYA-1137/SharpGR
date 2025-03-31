@@ -19,7 +19,6 @@ namespace SharpGR
         /// <summary>
         /// 総再生時間
         /// </summary>
-        /// 
         private int Duration;
 
         /// <summary>
@@ -76,7 +75,6 @@ namespace SharpGR
                 // 設定ファイルを読み込めた時
                 if (settingInfo != null)
                 {
-
                     // 音量を反映する
                     trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
                     numericUpDownVol.Text = settingInfo.Volume.ToString();
@@ -191,6 +189,7 @@ namespace SharpGR
             {
                 // HTTPリクエストを作成
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.MUSIC_INFO_JSON);
+                _ = _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "WinForm-SharpGR");
                 // HTTPリクエストを送信
                 HttpResponseMessage response = await _httpClient.SendAsync(request);
                 // レスポンスボディを取得
