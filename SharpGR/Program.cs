@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace SharpGR
@@ -13,16 +14,24 @@ namespace SharpGR
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+
             try
             {
                 Application.Run(new Form1());
             }
-            catch (COMException ex)
+
+            catch (COMException)
             {
-                DialogResult result = MessageBox.Show("再生できませんでした。\n幻想郷ラジオのサーバーがダウンしている可能性があります。\n再試行しますか？", "COMExceptionがスローされました", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error);
-                if (result == DialogResult.Retry)
+                DialogResult result = MessageBox.Show("幻想郷ラジオを再生出来ませんでした\n\n幻想郷ラジオの再生ページにアクセスし、ラジオが正常に再生されるか確認しますか？\nアクセス出来たら左下の再生ボタンを押してください。", "COMExceptionがスローされました", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+
+                if (result == DialogResult.Yes)
                 {
-                    Main();
+                    ProcessStartInfo startInfo = new ProcessStartInfo()
+                    {
+                        FileName = "https://gensokyoradio.net/playing/",
+                        UseShellExecute = true
+                    };
+                    Process.Start(startInfo);
                 }
             }
         }
