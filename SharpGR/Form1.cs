@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using NAudio.Wave;
-using Newtonsoft.Json;
 using SharpGR.FileIO;
 
 namespace SharpGR
@@ -58,58 +57,69 @@ namespace SharpGR
         /// </summary>
         public async Task ReadSettings()
         {
-            // 設定ファイルが存在しない場合
-            if (!File.Exists(Constants.FORM_MAIN_SETTING_FILE_NAME))
+            try
             {
-                // 設定ファイルを作成してデフォルトの設定値を書き込み
-                if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
+                // 設定ファイルが存在しない場合
+                if (!File.Exists(Constants.FORM_MAIN_SETTING_FILE_NAME))
                 {
-                    ErrorMessage = "デフォルトの設定値を設定ファイルへ書き込めませんでした";
+                    // 設定ファイルを作成してデフォルトの設定値を書き込み
+                    if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
+                    {
+                        ErrorMessage = "デフォルトの設定値を設定ファイルへ書き込めませんでした";
+                        MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        SetErrorMessage(ErrorMessage);
+                    }
+                }
+
+                settingInfo = JsonUtility.ReadJson<SettingInfo>(Constants.FORM_MAIN_SETTING_FILE_NAME, null);
+
+                // 設定ファイルを読み込めた時
+                if (settingInfo != null)
+                {
+
+                    // 音量を反映する
+                    trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
+                    numericUpDownVol.Text = settingInfo.Volume.ToString();
+
+                    if (settingInfo.PlaybackState == PlaybackState.Playing && waveOut.PlaybackState != PlaybackState.Playing)
+                    {
+                        await StartRadioAsync();
+                    }
+
+                    else
+                    {
+                        StopRadio();
+                    }
+                }
+
+                // 設定ファイルを読み込めなかった時
+                else
+                {
+                    ErrorMessage = "設定を読み込めませんでした、デフォルトの設定値を使用します。";
                     MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     SetErrorMessage(ErrorMessage);
+
+                    // 音量を反映する
+                    trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
+                    numericUpDownVol.Text = settingInfo.Volume.ToString();
+
+                    if (settingInfo.PlaybackState == PlaybackState.Playing && waveOut.PlaybackState != PlaybackState.Playing)
+                    {
+                        await StartRadioAsync();
+                    }
+
+                    else
+                    {
+                        StopRadio();
+                    }
                 }
             }
 
-            // 設定ファイルを読み込めた時
-            if (JsonUtility.ReadJson(Constants.FORM_MAIN_SETTING_FILE_NAME) != null)
+            catch (Exception ex)
             {
-                settingInfo = JsonUtility.ReadJson(Constants.FORM_MAIN_SETTING_FILE_NAME);
-
-                // 音量を反映する
-                trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
-                numericUpDownVol.Text = settingInfo.Volume.ToString();
-
-                if (settingInfo.PlaybackState == PlaybackState.Playing && waveOut.PlaybackState != PlaybackState.Playing)
-                {
-                    await StartRadioAsync();
-                }
-
-                else
-                {
-                    StopRadio();
-                }
-            }
-
-            // 設定ファイルを読み込めなかった時
-            else
-            {
-                ErrorMessage = "設定を読み込めませんでした、デフォルトの設定値を使用します。";
-                MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ErrorMessage = "設定の読み込み中にエラーが発生しました";
+                MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
-
-                // 音量を反映する
-                trackBarVol.Value = Convert.ToInt32(settingInfo.Volume);
-                numericUpDownVol.Text = settingInfo.Volume.ToString();
-
-                if (settingInfo.PlaybackState == PlaybackState.Playing && waveOut.PlaybackState != PlaybackState.Playing)
-                {
-                    await StartRadioAsync();
-                }
-
-                else
-                {
-                    StopRadio();
-                }
             }
         }
 
@@ -187,7 +197,7 @@ namespace SharpGR
                 string resBody = await response.Content.ReadAsStringAsync();
 
                 // レスポンスボディをデシリアライズ
-                songAPI = JsonConvert.DeserializeObject<SongAPI>(resBody);
+                songAPI = JsonUtility.ReadJson<SongAPI>(null, resBody);
 
                 if (songAPI != null)
                 {
