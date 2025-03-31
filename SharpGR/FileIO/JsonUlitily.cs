@@ -34,7 +34,7 @@ namespace SharpGR.FileIO
         /// <param name="fileName">ファイル名</param>
         /// <param name="jsonStr">楽曲情報</param>
         /// <returns><see cref="SettingInfo"/> または <see cref="SongAPI"/></returns>
-        public static T ReadJson<T>(string? fileName, string? jsonStr)
+        public static T? ReadJson<T>(string? fileName, string? jsonStr)
         {
             Type type = typeof(T);
 
