@@ -1,5 +1,8 @@
 ﻿namespace SharpGR
 {
+    /// <summary>
+    /// 楽曲情報のデータ構造定義クラス
+    /// </summary>
     public class SongAPI
     {
         public SONGINFO SONGINFO { get; set; }
