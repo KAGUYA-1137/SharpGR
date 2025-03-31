@@ -29,27 +29,46 @@ namespace SharpGR.FileIO
         }
 
         /// <summary>
-        /// 設定ファイルから設定を読み込み
+        /// JSONからデータを読み込み
         /// </summary>
         /// <param name="fileName">ファイル名</param>
-        /// <returns><see cref="SettingInfo"/></returns>
-        public static SettingInfo? ReadJson(string fileName)
+        /// <param name="jsonStr">楽曲情報</param>
+        /// <returns><see cref="SettingInfo"/> または <see cref="SongAPI"/></returns>
+        public static T ReadJson<T>(string? fileName, string? jsonStr)
         {
-            SettingInfo settingInfo = new SettingInfo();
+            Type type = typeof(T);
 
             try
             {
-                string json = File.ReadAllText(fileName);
-                settingInfo = JsonConvert.DeserializeObject<SettingInfo>(json);
+                if (type == typeof(SettingInfo))
+                {
+                    string json = File.ReadAllText(fileName);
 
-                // 設定ファイルから設定を読み込めたら読み込んだ情報を返す
-                return settingInfo;
+                    SettingInfo settingInfo = new SettingInfo();
+                    settingInfo = JsonConvert.DeserializeObject<SettingInfo>(json);
+
+                    // 設定ファイルから設定を読み込めたら読み込んだ情報を返す
+                    return (T)(object)settingInfo;
+                }
+
+                if (type == typeof(SongAPI))
+                {
+                    SongAPI songAPI = new SongAPI();
+                    songAPI = JsonConvert.DeserializeObject<SongAPI>(jsonStr);
+
+                    return (T)(object)songAPI;
+                }
+
+                else
+                {
+                    throw new NotSupportedException($"{type} はサポートされていません。");
+                }
             }
 
             catch
             {
                 // 読み込めなかったらnullを返す
-                return null;
+                return (T)(object)null;
             }
         }
     }
