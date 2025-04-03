@@ -28,14 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormAbout));
             label1 = new Label();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
             textBox2 = new TextBox();
             label4 = new Label();
             tabPage2 = new TabPage();
-            linkLabelZUN = new LinkLabel();
-            linkLabelGensokyo = new LinkLabel();
             textBox1 = new TextBox();
             labelVersion = new Label();
             tabControl1.SuspendLayout();
@@ -96,8 +95,6 @@
             // 
             // tabPage2
             // 
-            tabPage2.Controls.Add(linkLabelZUN);
-            tabPage2.Controls.Add(linkLabelGensokyo);
             tabPage2.Controls.Add(textBox1);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
@@ -106,28 +103,6 @@
             tabPage2.TabIndex = 1;
             tabPage2.Text = "クレジット";
             tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // linkLabelZUN
-            // 
-            linkLabelZUN.AutoSize = true;
-            linkLabelZUN.Location = new Point(136, 154);
-            linkLabelZUN.Name = "linkLabelZUN";
-            linkLabelZUN.Size = new Size(169, 15);
-            linkLabelZUN.TabIndex = 2;
-            linkLabelZUN.TabStop = true;
-            linkLabelZUN.Text = "https://www16.big.or.jp/~zun/";
-            linkLabelZUN.LinkClicked += linkLabelZUN_LinkClicked;
-            // 
-            // linkLabelGensokyo
-            // 
-            linkLabelGensokyo.AutoSize = true;
-            linkLabelGensokyo.Location = new Point(136, 108);
-            linkLabelGensokyo.Name = "linkLabelGensokyo";
-            linkLabelGensokyo.Size = new Size(150, 15);
-            linkLabelGensokyo.TabIndex = 2;
-            linkLabelGensokyo.TabStop = true;
-            linkLabelGensokyo.Text = "https://gensokyoradio.net/";
-            linkLabelGensokyo.LinkClicked += linkLabelGensokyo_LinkClicked;
             // 
             // textBox1
             // 
@@ -138,10 +113,11 @@
             textBox1.Multiline = true;
             textBox1.Name = "textBox1";
             textBox1.ReadOnly = true;
+            textBox1.ScrollBars = ScrollBars.Both;
             textBox1.Size = new Size(433, 185);
             textBox1.TabIndex = 0;
             textBox1.TabStop = false;
-            textBox1.Text = "SharpGRの開発者\r\nKAGUYA_1137\r\n\r\n\r\n\r\n謝辞\r\nLunarSpotlight Media(Gensokyo Radio)\r\n\r\n\r\n上海アリス幻樂団 / ZUN(東方Project)\r\n";
+            textBox1.Text = resources.GetString("textBox1.Text");
             textBox1.TextAlign = HorizontalAlignment.Center;
             // 
             // labelVersion
@@ -162,6 +138,7 @@
             Controls.Add(labelVersion);
             Controls.Add(label1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             KeyPreview = true;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -189,7 +166,5 @@
         private TextBox textBox1;
         private TextBox textBox2;
         private Label labelVersion;
-        private LinkLabel linkLabelGensokyo;
-        private LinkLabel linkLabelZUN;
     }
 }

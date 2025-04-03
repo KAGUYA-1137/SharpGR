@@ -189,7 +189,6 @@ namespace SharpGR
             {
                 // HTTPリクエストを作成
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.MUSIC_INFO_JSON);
-                _ = _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "WinForm-SharpGR");
                 // HTTPリクエストを送信
                 HttpResponseMessage response = await _httpClient.SendAsync(request);
                 // レスポンスボディを取得
@@ -208,8 +207,7 @@ namespace SharpGR
                     //Circlelabel.Text = songAPI.SONGINFO.CIRCLE;   // サークル名を設定
                     Duration = songAPI.SONGTIMES.DURATION;  // 楽曲の総再生時間を設定
                     Played = songAPI.SONGTIMES.PLAYED;  // 現在の再生時間を設定
-                    Timelabel.Text = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration)
-                        .ToString(@"m\:ss")}";    // 総再生時間と現在の再生時間を表示
+                    Timelabel.Text = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";    // 総再生時間と現在の再生時間を表示
 
                     // アルバムアートが空のとき
                     if (songAPI.MISC.ALBUMART == string.Empty)
@@ -219,11 +217,12 @@ namespace SharpGR
                     }
                     else
                     {
-                        /* アルバムアート取得先のプレフィックスと再生中の楽曲のアルバムアートのファイル名を合体して、
+                        /* アルバムアート取得先の絶対パスと再生中の楽曲のアルバムアートのファイル名を合体して、
                         再生中の楽曲のアルバムアートのパスを特定 */
                         AlbumArtpictureBox.ImageLocation = $"{Constants.ALBUM_ART_PREFIX}{songAPI.MISC.ALBUMART}";
                     }
                 }
+
                 else
                 {
                     throw new NullReferenceException("楽曲情報を取得できませんでした。");

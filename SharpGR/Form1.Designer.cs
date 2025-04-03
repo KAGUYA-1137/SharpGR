@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             buttonPlay = new Button();
             trackBarVol = new TrackBar();
             label1 = new Label();
@@ -297,6 +298,7 @@
             Controls.Add(buttonPlay);
             Controls.Add(menuStrip1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             ImeMode = ImeMode.Disable;
             KeyPreview = true;
             MainMenuStrip = menuStrip1;

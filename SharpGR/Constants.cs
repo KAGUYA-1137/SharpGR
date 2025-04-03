@@ -26,7 +26,7 @@
         public const string MUSIC_INFO_JSON = "https://gensokyoradio.net/api/station/playing/";
 
         /// <summary>
-        /// 幻想郷ラジオのアルバムアート取得先のプレフィックス
+        /// 幻想郷ラジオのアルバムアート取得先の絶対パス
         /// </summary>
         public const string ALBUM_ART_PREFIX = "https://gensokyoradio.net/images/albums/500/";
     }

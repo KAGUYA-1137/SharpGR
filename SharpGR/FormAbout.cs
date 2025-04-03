@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace SharpGR
 {
@@ -24,48 +23,6 @@ namespace SharpGR
                 Form1 form1 = new Form1();
                 form1.toolStripStatusLabel1.ForeColor = Color.Red;
                 form1.toolStripStatusLabel1.Text = $"{Text}画面の表示中にエラーが発生しました";
-            }
-        }
-
-        private void linkLabelGensokyo_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                linkLabelGensokyo.LinkVisited = true;
-
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = linkLabelGensokyo.Text,
-                    UseShellExecute = true
-                });
-            }
-
-            catch
-            {
-                Form1 form1 = new Form1();
-                form1.toolStripStatusLabel1.ForeColor = Color.Red;
-                form1.toolStripStatusLabel1.Text = "幻想郷ラジオのリンクをクリックした時にエラーが発生しました";
-            }
-        }
-
-        private void linkLabelZUN_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            try
-            {
-                linkLabelZUN.LinkVisited = true;
-
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = linkLabelZUN.Text,
-                    UseShellExecute = true
-                });
-            }
-
-            catch
-            {
-                Form1 form1 = new Form1();
-                form1.toolStripStatusLabel1.ForeColor = Color.Red;
-                form1.toolStripStatusLabel1.Text = "上海アリス幻樂団のリンクをクリックした時にエラーが発生しました";
             }
         }
 
