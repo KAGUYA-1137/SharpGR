@@ -31,7 +31,7 @@ namespace SharpGR
                         FileName = "https://gensokyoradio.net/playing/",
                         UseShellExecute = true
                     };
-                    Process.Start(startInfo);
+                    _ = Process.Start(startInfo);
                 }
             }
         }

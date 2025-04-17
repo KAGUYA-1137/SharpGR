@@ -63,7 +63,7 @@
         /// <summary>
         /// アルバムアートのファイル名
         /// </summary>
-        public string ALBUMART { get; set; }
+        public string? ALBUMART { get; set; }
 
         public string CIRCLEART { get; set; }
         public string OFFSET { get; set; }

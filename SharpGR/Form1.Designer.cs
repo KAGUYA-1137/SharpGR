@@ -155,6 +155,7 @@
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(822, 17);
             toolStripStatusLabel1.Spring = true;
+            toolStripStatusLabel1.Click += toolStripStatusLabel1_Click;
             // 
             // Namelabel
             // 

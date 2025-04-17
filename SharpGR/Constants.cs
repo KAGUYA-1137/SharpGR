@@ -11,7 +11,7 @@
         public const string SETTINGS_FOOTER = "Setting\\";
 
         /// <summary>
-        /// メイン画面の設定ファイル名
+        /// メイン画面の設定が記載されたファイル名
         /// </summary>
         public const string FORM_MAIN_SETTING_FILE_NAME = $"{SETTINGS_FOOTER}Form1.json";
 
@@ -29,5 +29,10 @@
         /// 幻想郷ラジオのアルバムアート取得先の絶対パス
         /// </summary>
         public const string ALBUM_ART_PREFIX = "https://gensokyoradio.net/images/albums/500/";
+
+        /// <summary>
+        /// 幻想郷ラジオのデフォルトのアルバムアートのパス
+        /// </summary>
+        public const string ALBUM_ART_PLACEHOLDER = "https://gensokyoradio.net/images/assets/gr-logo-placeholder.png";
     }
 }

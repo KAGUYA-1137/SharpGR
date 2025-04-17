@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using SharpGR.FileIO;
+using System.Reflection;
 
 namespace SharpGR
 {
@@ -13,7 +13,7 @@ namespace SharpGR
         private readonly MediaFoundationReader reader = new MediaFoundationReader(Constants.STREAM_ENDPOINT);
         private string ErrorMessage = string.Empty;
         private SettingInfo settingInfo = new SettingInfo();
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient client = new HttpClient();
         private SongAPI? songAPI = new SongAPI();
 
         /// <summary>
@@ -51,6 +51,12 @@ namespace SharpGR
             toolStripStatusLabel1.Text = message;
         }
 
+        private void SetStatusMessage(string message)
+        {
+            toolStripStatusLabel1.ForeColor = Color.Green;
+            toolStripStatusLabel1.Text = message;
+        }
+
         /// <summary>
         /// 設定読み込み
         /// </summary>
@@ -58,15 +64,21 @@ namespace SharpGR
         {
             try
             {
+                if (!Directory.Exists(Constants.SETTINGS_FOOTER))
+                {
+                    _ = Directory.CreateDirectory(Constants.SETTINGS_FOOTER);
+                }
+
                 // 設定ファイルが存在しない場合
                 if (!File.Exists(Constants.FORM_MAIN_SETTING_FILE_NAME))
                 {
                     // 設定ファイルを作成してデフォルトの設定値を書き込み
                     if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
                     {
-                        ErrorMessage = "デフォルトの設定値を設定ファイルへ書き込めませんでした";
-                        MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ErrorMessage = "デフォルトの設定値を設定ファイルへ書き込めませんでした。";
+                        _ = MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         SetErrorMessage(ErrorMessage);
+                        return;
                     }
                 }
 
@@ -94,7 +106,7 @@ namespace SharpGR
                 else
                 {
                     ErrorMessage = "設定を読み込めませんでした、デフォルトの設定値を使用します。";
-                    MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    _ = MessageBox.Show(ErrorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     SetErrorMessage(ErrorMessage);
 
                     // 音量を反映する
@@ -116,8 +128,9 @@ namespace SharpGR
             catch (Exception ex)
             {
                 ErrorMessage = "設定の読み込み中にエラーが発生しました";
-                MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
+                return;
             }
         }
 
@@ -154,7 +167,7 @@ namespace SharpGR
             catch (Exception ex)
             {
                 ErrorMessage = "再生中にエラーが発生しました";
-                MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
             }
         }
@@ -187,18 +200,27 @@ namespace SharpGR
         {
             try
             {
-                // HTTPリクエストを作成
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.MUSIC_INFO_JSON);
-                // HTTPリクエストを送信
-                HttpResponseMessage response = await _httpClient.SendAsync(request);
-                // レスポンスボディを取得
-                string resBody = await response.Content.ReadAsStringAsync();
+                SetErrorMessage(string.Empty);
 
-                // レスポンスボディをデシリアライズ
-                songAPI = JsonUtility.ReadJson<SongAPI>(null, resBody);
+                // HTTPリクエストを作成
+                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.MUSIC_INFO_JSON))
+                {
+                    //SetStatusMessage("楽曲情報を取得しています...");
+
+                    // HTTPリクエストを送信
+                    using HttpResponseMessage response = await client.SendAsync(request);
+
+                    // レスポンスボディを取得
+                    string resBody = await response.Content.ReadAsStringAsync();
+
+                    // レスポンスボディをデシリアライズ
+                    songAPI = JsonUtility.ReadJson<SongAPI>(null, resBody);
+                }
 
                 if (songAPI != null)
                 {
+                    //SetStatusMessage("楽曲情報を取得しました");
+
                     // デシリアライズしたオブジェクトから楽曲情報を取得
                     Namelabel.Text = songAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
                     Artistlabel.Text = songAPI.SONGINFO.ARTIST; // アーティスト名を設定
@@ -210,10 +232,10 @@ namespace SharpGR
                     Timelabel.Text = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";    // 総再生時間と現在の再生時間を表示
 
                     // アルバムアートが空のとき
-                    if (songAPI.MISC.ALBUMART == string.Empty)
+                    if (songAPI.MISC.ALBUMART == string.Empty || songAPI.MISC.ALBUMART == null)
                     {
                         // デフォルトのアルバムアートを表示
-                        AlbumArtpictureBox.ImageLocation = "https://gensokyoradio.net/images/assets/gr-logo-placeholder.png";
+                        AlbumArtpictureBox.ImageLocation = Constants.ALBUM_ART_PLACEHOLDER;
                     }
                     else
                     {
@@ -228,10 +250,11 @@ namespace SharpGR
                     throw new NullReferenceException("楽曲情報を取得できませんでした。");
                 }
             }
+
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
-                MessageBox.Show(ErrorMessage, "エラーが発生しました。", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show(ErrorMessage, "エラーが発生しました。", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
             }
         }
@@ -254,9 +277,14 @@ namespace SharpGR
             catch (Exception ex)
             {
                 ErrorMessage = "停止中にエラーが発生しました";
-                MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
             }
+        }
+
+        private void toolStripStatusLabel1_Click(object sender, EventArgs e)
+        {
+            SetErrorMessage(string.Empty);
         }
 
         private void 操作方法ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -288,7 +316,7 @@ namespace SharpGR
             catch (Exception ex)
             {
                 ErrorMessage = "音量の変更中にエラーが発生しました";
-                MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
             }
         }
@@ -310,7 +338,7 @@ namespace SharpGR
             catch (Exception ex)
             {
                 ErrorMessage = "音量の変更中にエラーが発生しました";
-                MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show(ErrorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SetErrorMessage(ErrorMessage);
             }
         }
@@ -345,12 +373,12 @@ namespace SharpGR
 
             try
             {
-                JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo);
+                _ = JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo);
             }
 
             catch (Exception ex)
             {
-                MessageBox.Show("設定の書き込み中にエラーが発生しました", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _ = MessageBox.Show("設定の書き込み中にエラーが発生しました\n設定値は保存されていません", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
