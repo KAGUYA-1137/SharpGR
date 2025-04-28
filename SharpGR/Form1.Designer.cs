@@ -68,7 +68,7 @@
             buttonPlay.Name = "buttonPlay";
             buttonPlay.Size = new Size(81, 45);
             buttonPlay.TabIndex = 0;
-            buttonPlay.Text = "再生";
+            buttonPlay.Text = "停止";
             buttonPlay.UseVisualStyleBackColor = true;
             buttonPlay.Click += buttonPlay_Click;
             // 
@@ -79,6 +79,7 @@
             trackBarVol.Name = "trackBarVol";
             trackBarVol.Size = new Size(677, 45);
             trackBarVol.TabIndex = 1;
+            trackBarVol.Value = 50;
             trackBarVol.Scroll += trackBarVol_Scroll;
             // 
             // label1
@@ -128,6 +129,7 @@
             numericUpDownVol.Name = "numericUpDownVol";
             numericUpDownVol.Size = new Size(58, 23);
             numericUpDownVol.TabIndex = 5;
+            numericUpDownVol.Value = new decimal(new int[] { 50, 0, 0, 0 });
             numericUpDownVol.ValueChanged += numericUpDownVol_ValueChanged;
             // 
             // label2
@@ -221,7 +223,6 @@
             // 
             // timer1
             // 
-            timer1.Enabled = true;
             timer1.Interval = 1000;
             timer1.Tick += timer1_Tick;
             // 

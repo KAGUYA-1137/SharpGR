@@ -3,16 +3,16 @@
 namespace SharpGR.FileIO
 {
     /// <summary>
-    /// 設定ファイルへの書き込みと読み込みを行うクラス
+    /// JSONの書き込みと読み込みを行うクラス
     /// </summary>
     public class JsonUtility
     {
         /// <summary>
-        /// 設定ファイルへ設定を書き込み
+        /// 設定ファイルへ書き込み
         /// </summary>
         /// <param name="path">ファイル名</param>
         /// <param name="settingInfo">書き込むデータ</param>
-        /// <returns>設定を書き込めたらtrue、それ以外はfalse</returns>
+        /// <returns><see cref="bool"/>。設定を書き込めたらtrue、それ以外はfalse</returns>
         public static bool WriteJson(string path, SettingInfo settingInfo)
         {
             try
@@ -29,12 +29,12 @@ namespace SharpGR.FileIO
         }
 
         /// <summary>
-        /// JSONからデータを読み込み
+        /// JSONから読み込み
         /// </summary>
         /// <param name="path">読み込むファイル</param>
-        /// <param name="value">JSON文字列</param>
+        /// <param name="jsonStr">JSON文字列</param>
         /// <returns><see cref="SettingInfo"/> または <see cref="SongAPI"/></returns>
-        public static T? ReadJson<T>(string? path, string? value)
+        public static T? ReadJson<T>(string? path, string? jsonStr)
         {
             Type type = typeof(T);
 
@@ -42,7 +42,7 @@ namespace SharpGR.FileIO
             {
                 if (type == typeof(SettingInfo))
                 {
-                    // 設定ファイルを読み込むならファイル名がないと処理出来ないのでここで検証
+                    // 設定ファイルを読み込むならファイルパスがないと処理出来ないのでここで検証
                     if (!string.IsNullOrWhiteSpace(path))
                     {
                         string json = File.ReadAllText(path);
@@ -54,39 +54,43 @@ namespace SharpGR.FileIO
                         return (T?)(object?)settingInfo;
                     }
 
+                    // 設定ファイルのパスが空白またはnullの場合
                     else
                     {
-                        return (T?)(object?)null;
+                        throw new ArgumentNullException(path, "設定ファイルのパスが指定されていません");
                     }
                 }
 
                 if (type == typeof(SongAPI))
                 {
                     // 楽曲情報を読み込むならレスポンスボディがないと処理出来ないのでここで検証
-                    if (!string.IsNullOrWhiteSpace(value))
+                    if (!string.IsNullOrWhiteSpace(jsonStr))
                     {
                         SongAPI? songAPI = new SongAPI();
-                        songAPI = JsonConvert.DeserializeObject<SongAPI>(value);
+                        songAPI = JsonConvert.DeserializeObject<SongAPI>(jsonStr);
 
                         // レスポンスボディから楽曲情報を読み込めたら楽曲情報を返す
                         return (T?)(object?)songAPI;
                     }
 
+                    // レスポンスボディが空白またはnullの場合
                     else
                     {
-                        return (T?)(object?)null;
+                        throw new ArgumentNullException(jsonStr, "楽曲情報が提供されていません");
                     }
                 }
 
                 // ここに来るということは変なものを渡したということ
                 else
                 {
-                    throw new NotSupportedException($"{type} には対応していません。");
+                    throw new NotSupportedException($"{type} には対応していません");
                 }
             }
 
-            catch
+            catch (Exception ex)
             {
+                _ = MessageBox.Show("JSONの読み込みに失敗しました。", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 // 読み込めなかったら、nullを返す
                 return (T?)(object?)null;
             }

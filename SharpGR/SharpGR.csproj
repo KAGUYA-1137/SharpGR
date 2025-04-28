@@ -12,7 +12,8 @@
     <Copyright>KAGUYA_1137</Copyright>
     <RepositoryUrl>https://github.com/KAGUYA-1137/SharpGR</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <ApplicationIcon>SharpGR.ico</ApplicationIcon>
+    <ApplicationIcon>ロゴ.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,22 +25,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="SharpGR.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\..\..\Pictures\SharpGR.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <Content Include="ロゴ.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NLog" Version="5.4.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Setting\Form1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
