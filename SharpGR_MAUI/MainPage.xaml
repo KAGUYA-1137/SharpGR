@@ -1,0 +1,52 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:viewmodel="clr-namespace:SharpGR_MAUI.ViewModels"
+             x:Class="SharpGR_MAUI.MainPage"
+             x:DataType="viewmodel:RadioViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="20">
+        <toolkit:MediaElement x:Name="mediaElement" Grid.Row="0" ShouldAutoPlay="False" ShouldShowPlaybackControls="False" Source="{Binding StreamUrl}" StateChanged="MediaElement_StateChanged" PositionChanged="MediaElement_PositionChanged" MediaOpened="MediaElement_MediaOpened" />
+
+        <VerticalStackLayout Grid.Row="1" Spacing="10" VerticalOptions="Center">
+            <Image x:Name="AlbumArtImage" Aspect="Fill"/>
+            <Label Text="{Binding TrackTitle, StringFormat='{0}'}" FontSize="Large" FontAttributes="Bold"/>
+            <Label Text="{Binding ArtistName, StringFormat='{0}'}" FontSize="Medium"/>
+            <Label Text="{Binding AlbumName, StringFormat='{0}'}" FontSize="Medium"/>
+            <!--<Slider IsEnabled="False" Value="{Binding PlayedValue}" Maximum="{Binding DurationValue}"/>-->
+            <!--<Slider Value="{Binding Volume}" ValueChanged="Slider_ValueChanged"/>-->
+            <HorizontalStackLayout Spacing="10">
+                <Label Text="{Binding PlayedText}" FontSize="Small"/>
+                <Label Text="/" FontSize="Small"/>
+                <Label Text="{Binding DurationText}" FontSize="Small"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!--<VerticalStackLayout Padding="20">
+            <Label Text="音量" FontSize="18" Margin="0,20,0,5" />
+            <Slider x:Name="VolumeSlider"
+                Minimum="0"
+                Maximum="1"
+                Value="0.5"
+                ValueChanged="OnVolumeSliderValueChanged" />
+
+            <HorizontalStackLayout Spacing="10">
+                <Label Text="現在の音量:" />
+                <Entry x:Name="VolumeEntry"
+                   WidthRequest="60"
+                   Text="{Binding Source={x:Reference VolumeSlider}, Path=Value, StringFormat='{0:P0}'}"
+                   Keyboard="Numeric"
+                   TextChanged="OnVolumeEntryTextChanged" />
+                <Label Text="(0% - 100%)" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>-->
+
+        <Button Grid.Row="2"
+                Text="{Binding PlayButtonText}"
+                Command="{Binding PlayPauseCommand}"
+                HorizontalOptions="Center"
+                WidthRequest="150"/>
+    </Grid>
+
+</ContentPage>
