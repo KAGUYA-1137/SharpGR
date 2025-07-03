@@ -37,8 +37,6 @@
         /// </summary>
         public const string ALBUM_INFO_LINK = "https://gensokyoradio.net/music/album/";
 
-        public const string NO_TITLE = "----";
-
-        public const string NO_ARTIST = "----";
+        public const string BLANK = "----";
     }
 }

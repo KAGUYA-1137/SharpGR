@@ -4,19 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:prop="clr-namespace:SharpGR_WPF.Properties"
-        x:Name="Form" x:Class="SharpGR_WPF.Form1"
+        x:Name="MainWindow1" x:Class="SharpGR_WPF.MainWindow"
         mc:Ignorable="d"
-        Title="SharpGR_WPF Ver.0.0.1" WindowStartupLocation="CenterScreen" Loaded="Form1_Load" Closing="Form1_Closing" KeyDown="Form1_KeyDown" Style="{DynamicResource Form1Style}" Background="Black">
+        Title="SharpGR_WPF Ver.?.?.?" WindowStartupLocation="CenterScreen" Loaded="Form1_Load" Closing="Form1_Closing" KeyDown="Form1_KeyDown" Style="{DynamicResource Form1Style}" Background="Black">
 
     <Grid x:Name="Grid" Margin="5" Height="418">
-        <Slider x:Name="VolumeSlider" Margin="61,11,0,0" Width="670" ValueChanged="Volume_Slider_ValueChanged" Style="{DynamicResource DefaultSliderStyle}" IsSnapToTickEnabled="True"/>
+        <Slider x:Name="VolumeSlider" Margin="61,11,0,0" Width="670" ValueChanged="VolumeSlider_ValueChanged" Style="{DynamicResource DefaultSliderStyle}" IsSnapToTickEnabled="True"/>
         <Label x:Name="PercentLabel" Content="%" Margin="774,15,0,0" Style="{DynamicResource LabelStyle}"/>
-        <TextBox x:Name="VolumeTextBox" Text="100" Margin="740,14,0,0" Style="{DynamicResource TextBoxStyle}" KeyDown="Volume_TextBox_KeyDown"/>
+        <TextBox x:Name="VolumeTextBox" Text="100" Margin="740,14,0,0" Style="{DynamicResource TextBoxStyle}" KeyDown="VolumeTextBox_KeyDown"/>
         <Label x:Name="VolumeLabel" Content="音量：" Margin="10,15,0,0" Style="{DynamicResource LabelStyle}"/>
         <Border x:Name="AlbumArtBorder" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,79,0,0" Width="253" Height="253">
-            <Image x:Name="AlbumArtImage" Stretch="Fill" MouseDown="AlbumArt_Image_MouseDown"/>
+            <Image x:Name="AlbumArtImage" Stretch="Fill" MouseDown="AlbumArtImage_MouseDown"/>
         </Border>
-        <Button x:Name="PlayButton" Content="停止" HorizontalAlignment="Left" Margin="10,374,0,0" VerticalAlignment="Top" Height="35" Width="62" VerticalContentAlignment="Center" Click="Play_Button_Click"/>
+        <Button x:Name="PlayButton" Content="停止" HorizontalAlignment="Left" Margin="10,374,0,0" VerticalAlignment="Top" Height="35" Width="62" VerticalContentAlignment="Center" Click="PlayButton_Click"/>
         <Slider x:Name="TimeSlider" Margin="85,380,0,0" Width="700" Style="{DynamicResource DisabledSliderStyle}"/>
         <Label x:Name="TimeLabel" Content="再生時間を取得中..." Margin="11,345,0,0" Style="{DynamicResource LabelStyle}"/>
         <Label x:Name="OnpuLabel" Content="♪" Margin="280,79,0,0" Style="{DynamicResource LabelStyle}"/>
@@ -25,10 +25,10 @@
         <Label x:Name="ArtistLabel" Content="アーティスト名を取得中..." Margin="306,110,0,0" Style="{DynamicResource LabelStyle}"/>
         <Label x:Name="DiscLabel" Content="💿" Margin="275,141,0,0" Style="{DynamicResource LabelStyle}"/>
         <Label x:Name="AlbumNameLabel" Content="アルバム名を取得中..." Margin="306,141,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="ListenerLabel" Content="聴いている人数：" HorizontalAlignment="Left" Margin="615,340,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label x:Name="ListenerNumLabel" Content="---" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="730,340,0,0" IsEnabled="False"/>
-        <Label x:Name="NinLabel" Content="人" HorizontalAlignment="Left" Margin="761,340,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label x:Name="RatingLabel" Content="評価：" HorizontalAlignment="Left" Margin="333,340,0,0" VerticalAlignment="Top" Foreground="White"/>
-        <Label x:Name="RatingNumLabel" Content="-.-- / 5" HorizontalAlignment="Left" Margin="390,340,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <Label x:Name="ListenerLabel" Content="聴いている人数：" HorizontalAlignment="Left" Margin="615,340,0,0" VerticalAlignment="Top" Foreground="White" Visibility="Hidden"/>
+        <Label x:Name="ListenerNumLabel" Content="---" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="730,340,0,0" IsEnabled="False" Visibility="Hidden"/>
+        <Label x:Name="NinLabel" Content="人" HorizontalAlignment="Left" Margin="761,340,0,0" VerticalAlignment="Top" Foreground="White" Visibility="Hidden"/>
+        <Label x:Name="RatingLabel" Content="評価：" HorizontalAlignment="Left" Margin="333,340,0,0" VerticalAlignment="Top" Foreground="White" Visibility="Hidden"/>
+        <Label x:Name="RatingNumLabel" Content="-.-- / 5" HorizontalAlignment="Left" Margin="390,340,0,0" VerticalAlignment="Top" Foreground="White" Visibility="Hidden"/>
     </Grid>
 </Window>

@@ -19,7 +19,7 @@ namespace SharpGR_WPF
     /// <summary>
     /// Form1.xaml の相互作用ロジック
     /// </summary>
-    public partial class Form1 : Window
+    public partial class MainWindow : Window
     {
         private readonly WaveOutEvent waveOutEvent = new WaveOutEvent();
 
@@ -50,9 +50,9 @@ namespace SharpGR_WPF
 
 #nullable enable
         /// <summary>
-        /// 楽曲情報のレスポンスボディの構造
+        /// 幻想郷ラジオのAPI
         /// </summary>
-        private SongAPI? songAPI = new SongAPI();
+        private RadioAPI? radioAPI = new RadioAPI();
 #nullable disable
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace SharpGR_WPF
 
         private readonly Timer timer = new Timer();
 
-        public Form1()
+        public MainWindow()
         {
             InitializeComponent();
         }
@@ -87,7 +87,7 @@ namespace SharpGR_WPF
                 // 設定ファイルのディレクトリが存在しない場合
                 if (!Directory.Exists(Constants.SETTING_FOOTER))
                 {
-                    logger.Warn("設定ファイルのディレクトリが存在しません、設定ファイルのディレクトリを作成します。");
+                    logger.Warn("設定ファイルのディレクトリが存在しません。");
 
                     // 設定ファイルのディレクトリを作成
                     DirectoryInfo directoryInfo = Directory.CreateDirectory(Constants.SETTING_FOOTER);
@@ -97,14 +97,14 @@ namespace SharpGR_WPF
                 // 設定ファイルが存在しない場合
                 if (!File.Exists(Constants.FORM_MAIN_SETTING_FILE_NAME))
                 {
-                    logger.Warn("設定ファイルが存在しません、設定ファイルを作成しデフォルトの設定値を書き込みます。");
+                    logger.Warn("設定ファイルが存在しません。");
 
                     // 設定ファイルを作成してデフォルトの設定値を書き込み
                     if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
                     {
-                        string errorMessage = "設定ファイルの作成またはデフォルトの設定値を書き込めませんでした。\n起動は行いますが設定ファイルは未作成です。";
+                        string errorMessage = "設定ファイルの作成、またはデフォルトの設定値の書き込みに失敗しました。";
                         logger.Warn(errorMessage);
-                        _ = MessageBox.Show(errorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        _ = MessageBox.Show(errorMessage, "設定ファイルへ書き込めませんでした", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
                     else
@@ -114,6 +114,7 @@ namespace SharpGR_WPF
                 }
 
                 logger.Info("設定ファイルを読み込みます。");
+                settingInfo = null;
                 settingInfo = JsonUtility.ReadJson<SettingInfo>(Constants.FORM_MAIN_SETTING_FILE_NAME, null);
 
                 // 設定ファイルを読み込めた時
@@ -170,7 +171,7 @@ namespace SharpGR_WPF
             }
         }
 
-        private async void Play_Button_Click(object sender, RoutedEventArgs e)
+        private async void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if (waveOutEvent != null && waveOutEvent.PlaybackState == PlaybackState.Playing)
             {
@@ -258,48 +259,48 @@ namespace SharpGR_WPF
                     logger.Info($"以下のレスポンスボディを読み込みました。\n{resBody}");
 
                     // レスポンスボディをデシリアライズ
-                    songAPI = JsonUtility.ReadJson<SongAPI>(null, resBody);
+                    radioAPI = JsonUtility.ReadJson<RadioAPI>(null, resBody);
 
-                    if (songAPI != null)
+                    if (radioAPI != null)
                     {
                         logger.Info("メイン画面の各コンポーネントへ楽曲情報を反映します。");
                         //SetStatusMessage("楽曲情報を取得しました");
 
                         // デシリアライズしたオブジェクトから楽曲情報を取得
-                        if (string.IsNullOrWhiteSpace(songAPI.SONGINFO.TITLE))
+                        if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.TITLE))
                         {
-                            NameLabel.Content = Constants.NO_TITLE;
+                            NameLabel.Content = Constants.BLANK;
                         }
-                        NameLabel.Content = songAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
-                        logger.Info($"楽曲名「{songAPI.SONGINFO.TITLE}」を反映しました。");
+                        NameLabel.Content = radioAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
+                        logger.Info($"楽曲名「{radioAPI.SONGINFO.TITLE}」を反映しました。");
 
-                        if (string.IsNullOrWhiteSpace(songAPI.SONGINFO.ARTIST))
+                        if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.ARTIST))
                         {
-                            ArtistLabel.Content = Constants.NO_ARTIST;
+                            ArtistLabel.Content = Constants.BLANK;
                         }
-                        ArtistLabel.Content = songAPI.SONGINFO.ARTIST; // アーティスト名を設定
-                        logger.Info($"アーティスト名「{songAPI.SONGINFO.ARTIST}」を反映しました。");
+                        ArtistLabel.Content = radioAPI.SONGINFO.ARTIST; // アーティスト名を設定
+                        logger.Info($"アーティスト名「{radioAPI.SONGINFO.ARTIST}」を反映しました。");
 
-                        AlbumNameLabel.Content = songAPI.SONGINFO.ALBUM;   // アルバム名を設定
-                        logger.Info($"アルバム名「{songAPI.SONGINFO.ALBUM}」を反映しました。");
+                        AlbumNameLabel.Content = radioAPI.SONGINFO.ALBUM;   // アルバム名を設定
+                        logger.Info($"アルバム名「{radioAPI.SONGINFO.ALBUM}」を反映しました。");
 
                         //Yearlabel.Text = songAPI.SONGINFO.YEAR;   // リリース年を設定
                         //Circlelabel.Text = songAPI.SONGINFO.CIRCLE;   // サークル名を設定
 
-                        Duration = songAPI.SONGTIMES.DURATION;  // 楽曲の総再生時間を設定
+                        Duration = radioAPI.SONGTIMES.DURATION;  // 楽曲の総再生時間を設定
                         logger.Info($"楽曲の長さ「{TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}」を反映しました。");
 
-                        Played = songAPI.SONGTIMES.PLAYED;  // 現在の再生時間を設定
+                        Played = radioAPI.SONGTIMES.PLAYED;  // 現在の再生時間を設定
                         logger.Info($"現在の再生時間「{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")}」を反映しました。");
 
                         // 総再生時間と現在の再生時間を表示
                         TimeLabel.Content = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";
 
-                        ListenerNumLabel.Content = songAPI.SERVERINFO.LISTENERS;
-                        RatingNumLabel.Content = songAPI.SONGDATA.RATING;
+                        ListenerNumLabel.Content = radioAPI.SERVERINFO.LISTENERS;
+                        RatingNumLabel.Content = radioAPI.SONGDATA.RATING;
 
                         // アルバムアートが未定義の場合
-                        if (string.IsNullOrWhiteSpace(songAPI.MISC.ALBUMART))
+                        if (string.IsNullOrWhiteSpace(radioAPI.MISC.ALBUMART))
                         {
                             // デフォルトのアルバムアートを表示
                             AlbumArtImage.Source = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.ALBUM_ART_PLACEHOLDER);
@@ -310,7 +311,7 @@ namespace SharpGR_WPF
                         {
                             /* アルバムアート取得先の絶対パスと再生中の楽曲のアルバムアートのファイル名を合体して、
                             再生中の楽曲のアルバムアートのパスを特定 */
-                            AlbumArtImage.Source = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.ALBUM_ART_PREFIX}{songAPI.MISC.ALBUMART}");
+                            AlbumArtImage.Source = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.ALBUM_ART_PREFIX}{radioAPI.MISC.ALBUMART}");
                         }
                     }
 
@@ -375,7 +376,7 @@ namespace SharpGR_WPF
         /// <summary>
         /// 音量変更時(トラックバー)
         /// </summary>
-        private void Volume_Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             try
             {
@@ -440,11 +441,11 @@ namespace SharpGR_WPF
             }
         }
 
-        private void AlbumArt_Image_MouseDown(object sender, MouseButtonEventArgs e)
+        private void AlbumArtImage_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(songAPI.SONGDATA.ALBUMID.ToString()))
+            if (!string.IsNullOrWhiteSpace(radioAPI.SONGDATA.ALBUMID.ToString()))
             {
-                string link = $"{Constants.ALBUM_INFO_LINK}{songAPI.SONGDATA.ALBUMID}/";
+                string link = $"{Constants.ALBUM_INFO_LINK}{radioAPI.SONGDATA.ALBUMID}/";
 
                 if (MessageBox.Show(link, "アルバム情報をブラウザーで確認しますか？", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == System.Windows.Forms.DialogResult.Yes)
                 {
@@ -461,7 +462,7 @@ namespace SharpGR_WPF
             }
         }
 
-        private void Volume_TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void VolumeTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             try
             {

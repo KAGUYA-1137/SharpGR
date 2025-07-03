@@ -37,7 +37,7 @@ namespace SharpGR_WPF.FileIO
         /// </summary>
         /// <param name="path">読み込むファイル</param>
         /// <param name="jsonStr">JSON文字列</param>
-        /// <returns><see cref="SettingInfo"/> または <see cref="SongAPI"/></returns>
+        /// <returns><see cref="SettingInfo"/> または <see cref="RadioAPI"/></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="NotSupportedException"></exception>
         public static T? ReadJson<T>(string? path, string? jsonStr)
@@ -67,16 +67,16 @@ namespace SharpGR_WPF.FileIO
                     }
                 }
 
-                if (type == typeof(SongAPI))
+                if (type == typeof(RadioAPI))
                 {
                     // 楽曲情報を読み込むならレスポンスボディがないと処理出来ないのでここで検証
                     if (!string.IsNullOrWhiteSpace(jsonStr))
                     {
-                        SongAPI? songAPI = new SongAPI();
-                        songAPI = JsonConvert.DeserializeObject<SongAPI>(jsonStr);
+                        RadioAPI? radioAPI = new RadioAPI();
+                        radioAPI = JsonConvert.DeserializeObject<RadioAPI>(jsonStr);
 
                         // レスポンスボディから楽曲情報を読み込めたら楽曲情報を返す
-                        return (T?)(object?)songAPI;
+                        return (T?)(object?)radioAPI;
                     }
 
                     // レスポンスボディが空白またはnullの場合
