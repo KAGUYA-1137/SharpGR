@@ -14,12 +14,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using MessageBox = System.Windows.Forms.MessageBox;
 
-namespace SharpGR_WPF
+namespace SharpGR_WPF.ViewModels
 {
-    /// <summary>
-    /// Form1.xaml の相互作用ロジック
-    /// </summary>
-    public partial class MainWindow : Window
+    public class MainWindowViewModel : BaseViewModel
     {
         private readonly WaveOutEvent waveOutEvent = new WaveOutEvent();
 
@@ -62,19 +59,157 @@ namespace SharpGR_WPF
 
         private readonly Timer timer = new Timer();
 
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        /// <summary>
+        /// タイトルバーに表示する初期の文字列
+        /// </summary>
+        private string appTitle = string.Empty;
 
         /// <summary>
-        /// メイン画面ロード時
+        /// タイトルバーに表示する文字列
         /// </summary>
-        private async void Form1_Load(object sender, RoutedEventArgs e)
+        public string AppTitle
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            Title = $"{assembly.GetName().Name} Ver.{assembly.GetName().Version}";
-            await ReadSettingsAsync();
+            get => appTitle;
+            set
+            {
+                appTitle = value;
+                SetProperty();
+            }
+        }
+
+        private double volumeSlider;
+
+        public double VolumeSlider
+        {
+            get => volumeSlider;
+            set
+            {
+                volumeSlider = value;
+                SetProperty();
+            }
+        }
+
+        private string volumeText = "100";
+
+        public string VolumeText
+        {
+            get => volumeText;
+            set
+            {
+                volumeText = value;
+                SetProperty();
+            }
+        }
+
+        private string playButtonText = "再生";
+
+        public string PlayButtonText
+        {
+            get => playButtonText;
+            set
+            {
+                playButtonText = value;
+                SetProperty();
+            }
+        }
+
+
+        private int timeSliderMax = 0;
+
+        public int TimeSliderMax
+        {
+            get => timeSliderMax;
+            set
+            {
+                timeSliderMax = value;
+                SetProperty();
+            }
+        }
+
+        private int timeSliderValue = 0;
+
+        public int TimeSliderValue
+        {
+            get => timeSliderValue;
+            set
+            {
+                timeSliderValue = value;
+                SetProperty();
+            }
+        }
+
+        private string timeLabelText = "--:-- / --:--";
+
+        public string TimeLabelText
+        {
+            get => timeLabelText;
+            set
+            {
+                timeLabelText = value;
+                SetProperty();
+            }
+        }
+
+        private string nameLabelText = Constants.BLANK;
+
+        public string NameLabelText
+        {
+            get => nameLabelText;
+            set
+            {
+                nameLabelText = value;
+                SetProperty();
+            }
+        }
+
+        private string artistLabelText = Constants.BLANK;
+
+        public string ArtistLabelText
+        {
+            get => artistLabelText;
+            set
+            {
+                artistLabelText = value;
+                SetProperty();
+            }
+        }
+
+        private string albumNameLabelText = Constants.BLANK;
+
+        public string AlbumNameLabelText
+        {
+            get => albumNameLabelText;
+            set
+            {
+                albumNameLabelText = value;
+                SetProperty();
+            }
+        }
+
+        private ImageSource albumArtImageSource = null;
+
+        public ImageSource AlbumArtImageSource
+        {
+            get => albumArtImageSource;
+            set
+            {
+                albumArtImageSource = value;
+                SetProperty();
+            }
+        }
+
+        public ICommand PlayButtonClickCommand { get; }
+
+        public ICommand ArtWorkClickCommand { get; }
+
+        public MainWindowViewModel(Window owner)
+        {
+            PlayButtonClickCommand = new RelayCommand(_ => PlayButtonClick(), _ => true);
+            ArtWorkClickCommand = new RelayCommand(_ => ArtWorkClick(), _ => true);
+
+            AppTitle = $"{Assembly.GetExecutingAssembly().GetName().Name} Ver.{Assembly.GetExecutingAssembly().GetName().Version}";
+
+            _ = ReadSettingsAsync();
         }
 
         /// <summary>
@@ -123,8 +258,10 @@ namespace SharpGR_WPF
                     logger.Info($"設定ファイルを読み込みました。\n再生状態は {settingInfo.PlaybackState} です。\n音量は {settingInfo.Volume} %です。");
 
                     // 音量を反映する
-                    VolumeSlider.Value = Convert.ToInt32(settingInfo.Volume);
-                    VolumeTextBox.Text = settingInfo.Volume.ToString();
+                    //VolumeSlider.Value = Convert.ToInt32(settingInfo.Volume);
+                    //VolumeTextBox.Text = settingInfo.Volume.ToString();
+                    VolumeSlider = settingInfo.Volume;
+                    VolumeText = settingInfo.Volume.ToString();
                     logger.Info($"音量を {settingInfo.Volume} %に設定しました。");
 
                     if (settingInfo.PlaybackState == PlaybackState.Playing && waveOutEvent.PlaybackState != PlaybackState.Playing)
@@ -148,8 +285,10 @@ namespace SharpGR_WPF
                     _ = MessageBox.Show(errorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                     // 音量を反映する
-                    VolumeSlider.Value = Convert.ToInt32(settingInfo.Volume);
-                    VolumeTextBox.Text = settingInfo.Volume.ToString();
+                    //VolumeSlider.Value = Convert.ToInt32(settingInfo.Volume);
+                    //VolumeTextBox.Text = settingInfo.Volume.ToString();
+                    VolumeSlider = settingInfo.Volume;
+                    VolumeText = settingInfo.Volume.ToString();
 
                     if (settingInfo.PlaybackState == PlaybackState.Playing && waveOutEvent.PlaybackState != PlaybackState.Playing)
                     {
@@ -171,16 +310,16 @@ namespace SharpGR_WPF
             }
         }
 
-        private async void PlayButton_Click(object sender, RoutedEventArgs e)
+        private async void PlayButtonClick()
         {
-            if (waveOutEvent != null && waveOutEvent.PlaybackState == PlaybackState.Playing)
+            if (waveOutEvent.PlaybackState != PlaybackState.Playing)
             {
-                StopRadio();
+                await StartRadioAsync();
             }
 
             else
             {
-                await StartRadioAsync();
+                StopRadio();
             }
         }
 
@@ -191,11 +330,11 @@ namespace SharpGR_WPF
         {
             try
             {
+                PlayButtonText = "停止";
                 waveOutEvent.Init(reader);
                 await GetSongInfoFromAPIAsync();
                 timer.Start();
                 waveOutEvent.Play();
-                PlayButton.Content = "停止";
             }
 
             catch (Exception ex)
@@ -212,17 +351,18 @@ namespace SharpGR_WPF
         {
             await GetSongInfoFromAPIAsync();
 
-            TimeSlider.Maximum = Duration;
+            TimeSliderMax = Duration;
 
             if (Played <= Duration)
             {
-                TimeSlider.Value = Played;
+                TimeSliderValue = Played;
             }
+
             else
             {
                 Played = 0;
-                TimeSlider.Value = Played;
-                TimeLabel.Content = "--:-- / --:--";
+                TimeSliderValue = Played;
+                TimeLabelText = "--:-- / --:--";
             }
         }
 
@@ -269,23 +409,20 @@ namespace SharpGR_WPF
                         // デシリアライズしたオブジェクトから楽曲情報を取得
                         if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.TITLE))
                         {
-                            NameLabel.Content = Constants.BLANK;
+                            NameLabelText = Constants.BLANK;
                         }
-                        NameLabel.Content = radioAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
+                        NameLabelText = radioAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
                         logger.Info($"楽曲名「{radioAPI.SONGINFO.TITLE}」を反映しました。");
 
                         if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.ARTIST))
                         {
-                            ArtistLabel.Content = Constants.BLANK;
+                            ArtistLabelText = Constants.BLANK;
                         }
-                        ArtistLabel.Content = radioAPI.SONGINFO.ARTIST; // アーティスト名を設定
+                        ArtistLabelText = radioAPI.SONGINFO.ARTIST; // アーティスト名を設定
                         logger.Info($"アーティスト名「{radioAPI.SONGINFO.ARTIST}」を反映しました。");
 
-                        AlbumNameLabel.Content = radioAPI.SONGINFO.ALBUM;   // アルバム名を設定
+                        AlbumNameLabelText = radioAPI.SONGINFO.ALBUM;   // アルバム名を設定
                         logger.Info($"アルバム名「{radioAPI.SONGINFO.ALBUM}」を反映しました。");
-
-                        //Yearlabel.Text = songAPI.SONGINFO.YEAR;   // リリース年を設定
-                        //Circlelabel.Text = songAPI.SONGINFO.CIRCLE;   // サークル名を設定
 
                         Duration = radioAPI.SONGTIMES.DURATION;  // 楽曲の総再生時間を設定
                         logger.Info($"楽曲の長さ「{TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}」を反映しました。");
@@ -294,16 +431,13 @@ namespace SharpGR_WPF
                         logger.Info($"現在の再生時間「{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")}」を反映しました。");
 
                         // 総再生時間と現在の再生時間を表示
-                        TimeLabel.Content = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";
-
-                        ListenerNumLabel.Content = radioAPI.SERVERINFO.LISTENERS;
-                        RatingNumLabel.Content = radioAPI.SONGDATA.RATING;
+                        TimeLabelText = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";
 
                         // アルバムアートが未定義の場合
                         if (string.IsNullOrWhiteSpace(radioAPI.MISC.ALBUMART))
                         {
                             // デフォルトのアルバムアートを表示
-                            AlbumArtImage.Source = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.ALBUM_ART_PLACEHOLDER);
+                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.ALBUM_ART_PLACEHOLDER);
                         }
 
                         // アルバムアートが定義されている場合
@@ -311,7 +445,7 @@ namespace SharpGR_WPF
                         {
                             /* アルバムアート取得先の絶対パスと再生中の楽曲のアルバムアートのファイル名を合体して、
                             再生中の楽曲のアルバムアートのパスを特定 */
-                            AlbumArtImage.Source = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.ALBUM_ART_PREFIX}{radioAPI.MISC.ALBUMART}");
+                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.ALBUM_ART_PREFIX}{radioAPI.MISC.ALBUMART}");
                         }
                     }
 
@@ -337,117 +471,13 @@ namespace SharpGR_WPF
             }
         }
 
-        /// <summary>
-        /// 幻想郷ラジオを停止
-        /// </summary>
-        private void StopRadio()
-        {
-            try
-            {
-                logger.Info($"{Assembly.GetExecutingAssembly().GetName().Name}を終了します。");
-
-                if (waveOutEvent != null)
-                {
-                    timer.Stop();
-                    waveOutEvent.Stop();
-                    PlayButton.Content = "再生";
-                }
-            }
-
-            catch (Exception ex)
-            {
-                string errorMessage = "停止中にエラーが発生しました";
-                _ = MessageBox.Show(errorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        //private void 操作方法ToolStripMenuItem_Click(object sender, EventArgs e)
-        //{
-        //    FormHelp formHelp = new FormHelp();
-        //    formHelp.Show();
-        //}
-
-        //private void sharpGRについてToolStripMenuItem_Click(object sender, EventArgs e)
-        //{
-        //    FormAbout formAbout = new FormAbout();
-        //    formAbout.Show();
-        //}
-
-        /// <summary>
-        /// 音量変更時(トラックバー)
-        /// </summary>
-        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            try
-            {
-                if (waveOutEvent != null)
-                {
-                    waveOutEvent.Volume = (float)(VolumeSlider.Value / 100f);
-
-                    if (VolumeTextBox != null)
-                    {
-                        //VolumeTextBox.Text = waveOutEvent.Volume.ToString();
-                        VolumeTextBox.Text = Math.Floor(VolumeSlider.Value).ToString();
-                    }
-
-                    else
-                    {
-                        VolumeTextBox = new System.Windows.Controls.TextBox();
-                    }
-                }
-            }
-
-            catch (Exception ex)
-            {
-                string errorMessage = "音量の変更中にエラーが発生しました";
-                _ = MessageBox.Show(errorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        /// <summary>
-        /// 設定ファイルへ保存
-        /// </summary>
-        private void Form1_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            switch (PlayButton.Content)
-            {
-                case "再生":
-                    settingInfo.PlaybackState = PlaybackState.Stopped;
-                    settingInfo.Volume = Convert.ToInt32(VolumeTextBox.Text);
-                    break;
-                case "停止":
-                    settingInfo.PlaybackState = PlaybackState.Playing;
-                    settingInfo.Volume = Convert.ToInt32(VolumeTextBox.Text);
-                    break;
-                default:
-                    break;
-            }
-
-            if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
-            {
-                _ = MessageBox.Show("設定を保存出来ませんでした", "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void Form1_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            switch (e.Key)
-            {
-                case Key.Escape:
-                    Close();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void AlbumArtImage_MouseDown(object sender, MouseButtonEventArgs e)
+        private void ArtWorkClick()
         {
             if (!string.IsNullOrWhiteSpace(radioAPI.SONGDATA.ALBUMID.ToString()))
             {
                 string link = $"{Constants.ALBUM_INFO_LINK}{radioAPI.SONGDATA.ALBUMID}/";
 
-                if (MessageBox.Show(link, "アルバム情報をブラウザーで確認しますか？", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == System.Windows.Forms.DialogResult.Yes)
+                if (MessageBox.Show(link, "アルバム情報をブラウザーで確認しますか？", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                 {
                     using Process process = new Process();
                     process.StartInfo.FileName = link;
@@ -458,35 +488,28 @@ namespace SharpGR_WPF
 
             else
             {
-                _ = MessageBox.Show("このアルバムの情報はありません", "情報なし", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _ = MessageBox.Show("このアルバムの情報はありません", "アルバム情報なし", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        private void VolumeTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        /// <summary>
+        /// 幻想郷ラジオを停止
+        /// </summary>
+        private void StopRadio()
         {
             try
             {
                 if (waveOutEvent != null)
                 {
-                    switch (e.Key)
-                    {
-                        case Key.Enter:
-                            waveOutEvent.Volume = float.Parse(VolumeTextBox.Text) / 100f;
-                            VolumeSlider.Value = Math.Floor(VolumeSlider.Value);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
-                    throw new NullReferenceException($"{waveOutEvent}がnullです");
+                    PlayButtonText = "再生";
+                    //timer.Stop();
+                    waveOutEvent.Stop();
                 }
             }
 
             catch (Exception ex)
             {
-                string errorMessage = "音量の変更中にエラーが発生しました";
+                string errorMessage = "停止中にエラーが発生しました";
                 _ = MessageBox.Show(errorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
