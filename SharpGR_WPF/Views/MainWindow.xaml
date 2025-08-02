@@ -10,7 +10,12 @@
         WindowStartupLocation="CenterScreen"
         Style="{DynamicResource Form1Style}"
         Background="Black"
-        Title="{Binding AppTitle, UpdateSourceTrigger=PropertyChanged}">
+        Title="{Binding AppTitle, UpdateSourceTrigger=PropertyChanged}"
+        ResizeMode="CanMinimize">
+    
+    <Window.InputBindings>
+        <KeyBinding Key="Esc" Command="{Binding CloseCommand}"/>
+    </Window.InputBindings>
 
     <Grid x:Name="Grid" Margin="5" Height="418">
         <Slider x:Name="VolumeSlider" Margin="61,11,0,0" Width="670" Style="{DynamicResource DefaultSliderStyle}" IsSnapToTickEnabled="True" Value="{Binding VolumeSlider, UpdateSourceTrigger=PropertyChanged}"/>

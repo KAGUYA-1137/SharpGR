@@ -4,7 +4,7 @@ using System.Windows;
 namespace SharpGR_WPF
 {
     /// <summary>
-    /// Form1.xaml の相互作用ロジック
+    /// MainWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class MainWindow : Window
     {

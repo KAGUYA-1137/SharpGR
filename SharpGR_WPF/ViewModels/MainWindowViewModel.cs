@@ -16,14 +16,58 @@ using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace SharpGR_WPF.ViewModels
 {
+    /// <summary>
+    /// MainWindowのビューモデル
+    /// </summary>
     public class MainWindowViewModel : BaseViewModel
     {
+        #region Constants
+
+        /// <summary>
+        /// 設定ファイルのディレクトリ
+        /// </summary>
+        private const string SETTING_FOOTER = "Setting\\";
+
+        /// <summary>
+        /// メイン画面の設定が記載されたファイル名
+        /// </summary>
+        private const string FORM_MAIN_SETTING_FILE_NAME = $"{SETTING_FOOTER}Form1.json";
+
+        /// <summary>
+        /// 幻想郷ラジオのストリームエンドポイント
+        /// </summary>
+        private const string STREAM_ENDPOINT = "https://stream.gensokyoradio.net/3";
+
+        /// <summary>
+        /// 幻想郷ラジオで再生中の楽曲情報の取得先
+        /// </summary>
+        private const string SONG_INFO_API = "https://gensokyoradio.net/api/station/playing/";
+
+        /// <summary>
+        /// 幻想郷ラジオのアルバムアート取得先の絶対パス
+        /// </summary>
+        private const string ALBUM_ART_PREFIX = "https://gensokyoradio.net/images/albums/500/";
+
+        /// <summary>
+        /// 幻想郷ラジオのデフォルトのアルバムアートのパス
+        /// </summary>
+        private const string ALBUM_ART_PLACEHOLDER = "https://gensokyoradio.net/images/assets/gr-logo-placeholder.png";
+
+        /// <summary>
+        /// 幻想郷ラジオのアルバム情報のURL
+        /// </summary>
+        private const string ALBUM_INFO_LINK = "https://gensokyoradio.net/music/album/";
+
+        private const string BLANK = "----";
+
+        #endregion
+
         private readonly WaveOutEvent waveOutEvent = new WaveOutEvent();
 
         /// <summary>
         /// 任意のファイルを読み込むクラス
         /// </summary>
-        private readonly MediaFoundationReader reader = new MediaFoundationReader(Constants.STREAM_ENDPOINT);
+        private readonly MediaFoundationReader mediaFoundationReader = new MediaFoundationReader(STREAM_ENDPOINT);
 
         /// <summary>
         /// 設定ファイルの構造
@@ -33,7 +77,7 @@ namespace SharpGR_WPF.ViewModels
         /// <summary>
         /// HTTP/HTTPS通信を行うクラス
         /// </summary>
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly HttpClient httpClient = new HttpClient();
 
         /// <summary>
         /// 再生中の楽曲の総再生時間
@@ -65,7 +109,7 @@ namespace SharpGR_WPF.ViewModels
         private string appTitle = string.Empty;
 
         /// <summary>
-        /// タイトルバーに表示する文字列
+        /// タイトルバーに表示する新しい文字列
         /// </summary>
         public string AppTitle
         {
@@ -77,8 +121,14 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private double volumeSlider;
+        /// <summary>
+        /// 音量スライダーの初期の値
+        /// </summary>
+        private double volumeSlider = 100;
 
+        /// <summary>
+        /// 音量スライダーの新しい値
+        /// </summary>
         public double VolumeSlider
         {
             get => volumeSlider;
@@ -89,8 +139,14 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
+        /// <summary>
+        /// 音量テキストボックスの初期の文字列
+        /// </summary>
         private string volumeText = "100";
 
+        /// <summary>
+        /// 音量テキストボックスの新しい文字列
+        /// </summary>
         public string VolumeText
         {
             get => volumeText;
@@ -114,7 +170,7 @@ namespace SharpGR_WPF.ViewModels
         }
 
 
-        private int timeSliderMax = 0;
+        private int timeSliderMax = 100;
 
         public int TimeSliderMax
         {
@@ -150,7 +206,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string nameLabelText = Constants.BLANK;
+        private string nameLabelText = BLANK;
 
         public string NameLabelText
         {
@@ -162,7 +218,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string artistLabelText = Constants.BLANK;
+        private string artistLabelText = BLANK;
 
         public string ArtistLabelText
         {
@@ -174,7 +230,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string albumNameLabelText = Constants.BLANK;
+        private string albumNameLabelText = BLANK;
 
         public string AlbumNameLabelText
         {
@@ -198,15 +254,32 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
+        /// <summary>
+        /// 再生ボタンクリック時のイベント
+        /// </summary>
         public ICommand PlayButtonClickCommand { get; }
 
+        /// <summary>
+        /// アルバムアートクリック時のイベント
+        /// </summary>
         public ICommand ArtWorkClickCommand { get; }
+
+        /// <summary>
+        /// 画面を閉じるコマンド
+        /// </summary>
+        public ICommand CloseCommand { get; }
 
         public MainWindowViewModel(Window owner)
         {
+            // 再生ボタンクリック時のイベントにメソッドをバインド
             PlayButtonClickCommand = new RelayCommand(_ => PlayButtonClick(), _ => true);
+
+            // アルバムアートクリック時のイベントにメソッドをバインド
             ArtWorkClickCommand = new RelayCommand(_ => ArtWorkClick(), _ => true);
 
+            CloseCommand = new RelayCommand(_ => CloseWindow(), _ => true);
+
+            // タイトルバーに表示する文字列を設定
             AppTitle = $"{Assembly.GetExecutingAssembly().GetName().Name} Ver.{Assembly.GetExecutingAssembly().GetName().Version}";
 
             _ = ReadSettingsAsync();
@@ -220,22 +293,22 @@ namespace SharpGR_WPF.ViewModels
             try
             {
                 // 設定ファイルのディレクトリが存在しない場合
-                if (!Directory.Exists(Constants.SETTING_FOOTER))
+                if (!Directory.Exists(SETTING_FOOTER))
                 {
                     logger.Warn("設定ファイルのディレクトリが存在しません。");
 
                     // 設定ファイルのディレクトリを作成
-                    DirectoryInfo directoryInfo = Directory.CreateDirectory(Constants.SETTING_FOOTER);
+                    DirectoryInfo directoryInfo = Directory.CreateDirectory(SETTING_FOOTER);
                     logger.Info($"設定ファイルのディレクトリを「{directoryInfo.FullName}」へ作成しました。");
                 }
 
                 // 設定ファイルが存在しない場合
-                if (!File.Exists(Constants.FORM_MAIN_SETTING_FILE_NAME))
+                if (!File.Exists(FORM_MAIN_SETTING_FILE_NAME))
                 {
                     logger.Warn("設定ファイルが存在しません。");
 
                     // 設定ファイルを作成してデフォルトの設定値を書き込み
-                    if (!JsonUtility.WriteJson(Constants.FORM_MAIN_SETTING_FILE_NAME, settingInfo))
+                    if (!JsonUtility.WriteJson(FORM_MAIN_SETTING_FILE_NAME, settingInfo))
                     {
                         string errorMessage = "設定ファイルの作成、またはデフォルトの設定値の書き込みに失敗しました。";
                         logger.Warn(errorMessage);
@@ -250,7 +323,7 @@ namespace SharpGR_WPF.ViewModels
 
                 logger.Info("設定ファイルを読み込みます。");
                 settingInfo = null;
-                settingInfo = JsonUtility.ReadJson<SettingInfo>(Constants.FORM_MAIN_SETTING_FILE_NAME, null);
+                settingInfo = JsonUtility.ReadJson<SettingInfo>(FORM_MAIN_SETTING_FILE_NAME, null);
 
                 // 設定ファイルを読み込めた時
                 if (settingInfo != null)
@@ -331,7 +404,7 @@ namespace SharpGR_WPF.ViewModels
             try
             {
                 PlayButtonText = "停止";
-                waveOutEvent.Init(reader);
+                waveOutEvent.Init(mediaFoundationReader);
                 await GetSongInfoFromAPIAsync();
                 timer.Start();
                 waveOutEvent.Play();
@@ -379,13 +452,13 @@ namespace SharpGR_WPF.ViewModels
 
                 // HTTPリクエストメッセージを作成
                 logger.Info("HTTPリクエストメッセージを作成します。");
-                using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.SONG_INFO_API);
+                using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, SONG_INFO_API);
                 //SetStatusMessage("楽曲情報を取得しています...");
                 logger.Info($"HTTPリクエストメッセージを作成しました。\n{request}");
 
                 // HTTPリクエストを送信
                 logger.Info($"HTTPリクエストメッセージを {request.RequestUri} へ送信します。");
-                using HttpResponseMessage response = await client.SendAsync(request);
+                using HttpResponseMessage response = await httpClient.SendAsync(request);
                 logger.Info($"HTTPリクエストメッセージに対して以下のレスポンスメッセージが返されました。\n{response}");
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -409,14 +482,14 @@ namespace SharpGR_WPF.ViewModels
                         // デシリアライズしたオブジェクトから楽曲情報を取得
                         if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.TITLE))
                         {
-                            NameLabelText = Constants.BLANK;
+                            NameLabelText = BLANK;
                         }
                         NameLabelText = radioAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
                         logger.Info($"楽曲名「{radioAPI.SONGINFO.TITLE}」を反映しました。");
 
                         if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.ARTIST))
                         {
-                            ArtistLabelText = Constants.BLANK;
+                            ArtistLabelText = BLANK;
                         }
                         ArtistLabelText = radioAPI.SONGINFO.ARTIST; // アーティスト名を設定
                         logger.Info($"アーティスト名「{radioAPI.SONGINFO.ARTIST}」を反映しました。");
@@ -437,7 +510,7 @@ namespace SharpGR_WPF.ViewModels
                         if (string.IsNullOrWhiteSpace(radioAPI.MISC.ALBUMART))
                         {
                             // デフォルトのアルバムアートを表示
-                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.ALBUM_ART_PLACEHOLDER);
+                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(ALBUM_ART_PLACEHOLDER);
                         }
 
                         // アルバムアートが定義されている場合
@@ -445,7 +518,7 @@ namespace SharpGR_WPF.ViewModels
                         {
                             /* アルバムアート取得先の絶対パスと再生中の楽曲のアルバムアートのファイル名を合体して、
                             再生中の楽曲のアルバムアートのパスを特定 */
-                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.ALBUM_ART_PREFIX}{radioAPI.MISC.ALBUMART}");
+                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString($"{ALBUM_ART_PREFIX}{radioAPI.MISC.ALBUMART}");
                         }
                     }
 
@@ -475,7 +548,7 @@ namespace SharpGR_WPF.ViewModels
         {
             if (!string.IsNullOrWhiteSpace(radioAPI.SONGDATA.ALBUMID.ToString()))
             {
-                string link = $"{Constants.ALBUM_INFO_LINK}{radioAPI.SONGDATA.ALBUMID}/";
+                string link = $"{ALBUM_INFO_LINK}{radioAPI.SONGDATA.ALBUMID}/";
 
                 if (MessageBox.Show(link, "アルバム情報をブラウザーで確認しますか？", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                 {
@@ -484,12 +557,23 @@ namespace SharpGR_WPF.ViewModels
                     process.StartInfo.UseShellExecute = true;
                     process.Start();
                 }
+
+                else
+                {
+                    return;
+                }
             }
 
             else
             {
                 _ = MessageBox.Show("このアルバムの情報はありません", "アルバム情報なし", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+
+        private void CloseWindow()
+        {
+            System.Windows.Application.Current.Shutdown();
         }
 
         /// <summary>
