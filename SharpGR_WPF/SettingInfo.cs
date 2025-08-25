@@ -15,6 +15,6 @@ namespace SharpGR_WPF
         /// <summary>
         /// 音量
         /// </summary>
-        public int Volume { get; set; } = 50;
+        public int Volume { get; set; } = 100;
     }
 }

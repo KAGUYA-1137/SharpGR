@@ -176,7 +176,7 @@
         public int SONGID { get; set; }
         public int? ALBUMID { get; set; }
         public string? RATING { get; set; }
-        public int TIMESRATED { get; set; }
+        public int? TIMESRATED { get; set; }
     }
 
     /// <summary>

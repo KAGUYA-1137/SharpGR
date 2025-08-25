@@ -1,5 +1,5 @@
-﻿using SharpGR_WPF.ViewModels;
-using System.Windows;
+﻿using System.Windows;
+using SharpGR_WPF.ViewModels;
 
 namespace SharpGR_WPF
 {
@@ -11,7 +11,7 @@ namespace SharpGR_WPF
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel(this);
+            DataContext = new MainWindowViewModel();
         }
     }
 }

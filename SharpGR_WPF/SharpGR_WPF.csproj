@@ -117,6 +117,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Behaviors\WindowClosingBehavior.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="FileIO\JsonUtility.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -170,9 +171,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\SharpGR.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="SharpGR.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +184,11 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\SharpGR.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -4,39 +4,39 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:SharpGR_WPF.ViewModels"
+        xmlns:behaviors="clr-namespace:SharpGR_WPF.Behaviors"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
         x:Class="SharpGR_WPF.MainWindow"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Style="{DynamicResource Form1Style}"
-        Background="Black"
         Title="{Binding AppTitle, UpdateSourceTrigger=PropertyChanged}"
-        ResizeMode="CanMinimize">
-    
+        behaviors:WindowClosingBehavior.ClosingCommand="{Binding CloseCommand}">
+
     <Window.InputBindings>
         <KeyBinding Key="Esc" Command="{Binding CloseCommand}"/>
     </Window.InputBindings>
 
-    <Grid x:Name="Grid" Margin="5" Height="418">
-        <Slider x:Name="VolumeSlider" Margin="61,11,0,0" Width="670" Style="{DynamicResource DefaultSliderStyle}" IsSnapToTickEnabled="True" Value="{Binding VolumeSlider, UpdateSourceTrigger=PropertyChanged}"/>
-        <Label x:Name="PercentLabel" Content="%" Margin="774,15,0,0" Style="{DynamicResource LabelStyle}"/>
-        <TextBox x:Name="VolumeTextBox" Text="{Binding VolumeText, UpdateSourceTrigger=PropertyChanged}" Margin="740,14,0,0" Style="{DynamicResource TextBoxStyle}" />
-        <Label x:Name="VolumeLabel" Content="音量：" Margin="10,15,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Border x:Name="AlbumArtBorder" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,79,0,0" Width="253" Height="253">
+    <Grid x:Name="Grid">
+        <Label x:Name="VolumeLabel" Content="音量：" Margin="10,13,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Slider x:Name="VolumeSliderValue" Margin="61,10,64,0" Style="{DynamicResource DefaultSliderStyle}" IsSnapToTickEnabled="True" Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Maximum="100"/>
+        <TextBox x:Name="VolumeTextBox" Text="{Binding Volume, UpdateSourceTrigger=PropertyChanged}" Margin="0,12,21,0" Style="{DynamicResource TextBoxStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+        <Label x:Name="PercentLabel" Content="%" Margin="769,10,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+        <Border x:Name="AlbumArtBorder" BorderBrush="White" BorderThickness="1" VerticalAlignment="Center" Margin="10,0,0,0" Width="250" Height="250" HorizontalAlignment="Left">
             <Image x:Name="AlbumArtImage" Stretch="Fill" Source="{Binding AlbumArtImageSource, UpdateSourceTrigger=PropertyChanged}">
                 <Image.InputBindings>
                     <MouseBinding MouseAction="LeftClick" Command="{Binding ArtWorkClickCommand}" />
                 </Image.InputBindings>
             </Image>
         </Border>
-        <Button x:Name="PlayButton" Content="{Binding PlayButtonText, UpdateSourceTrigger=PropertyChanged}" Command="{Binding PlayButtonClickCommand}" HorizontalAlignment="Left" Margin="10,374,0,0" VerticalAlignment="Top" Height="35" Width="62" VerticalContentAlignment="Center" />
-        <Slider x:Name="TimeSlider" Margin="85,380,0,0" Width="700" Style="{DynamicResource DisabledSliderStyle}" Maximum="{Binding TimeSliderMax, UpdateSourceTrigger=PropertyChanged}" Value="{Binding TimeSliderValue, UpdateSourceTrigger=PropertyChanged}"/>
-        <Label x:Name="TimeLabel" Content="{Binding TimeLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="11,345,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="OnpuLabel" Content="♪" Margin="280,79,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="NameLabel" Content="{Binding NameLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="306,79,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="HumanLabel" Content="👤" Margin="275,110,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="ArtistLabel" Content="{Binding ArtistLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="306,110,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="DiscLabel" Content="💿" Margin="275,141,0,0" Style="{DynamicResource LabelStyle}"/>
-        <Label x:Name="AlbumNameLabel" Content="{Binding AlbumNameLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="306,141,0,0" Style="{DynamicResource LabelStyle}"/>
+        <Button x:Name="PlayButton" Content="{Binding PlayButtonText, UpdateSourceTrigger=PropertyChanged}" Command="{Binding PlayButtonClickCommand}" HorizontalAlignment="Left" Margin="10,374,0,10" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Style="{DynamicResource ButtonStyle}" />
+        <Slider x:Name="TimeSlider" Margin="85,380,0,10" Style="{DynamicResource ReadOnlySliderStyle}" Maximum="{Binding TimeSliderMax, UpdateSourceTrigger=PropertyChanged}" Value="{Binding TimeSliderValue, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom"/>
+        <Label x:Name="TimeLabel" Content="{Binding TimeLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="10,0,0,55" Style="{DynamicResource LabelStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+        <Label x:Name="OnpuLabel" Content="♪" Margin="277,83,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="NameLabel" Content="{Binding NameLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="306,84,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="HumanLabel" Content="👤" Margin="275,110,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="ArtistLabel" Content="{Binding ArtistLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="306,111,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="DiscLabel" Content="💿" Margin="275,141,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="AlbumNameLabel" Content="{Binding AlbumNameLabelText, UpdateSourceTrigger=PropertyChanged}" Margin="306,142,0,0" Style="{DynamicResource LabelStyle}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
     </Grid>
 </Window>

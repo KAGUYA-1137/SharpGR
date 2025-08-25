@@ -1,17 +1,16 @@
-﻿using NAudio.Wave;
-using NLog;
-using SharpGR_WPF.FileIO;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using NAudio.Wave;
+using NLog;
+using SharpGR_WPF.FileIO;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace SharpGR_WPF.ViewModels
@@ -61,6 +60,8 @@ namespace SharpGR_WPF.ViewModels
         private const string BLANK = "----";
 
         #endregion
+
+        #region Variable
 
         private readonly WaveOutEvent waveOutEvent = new WaveOutEvent();
 
@@ -122,38 +123,36 @@ namespace SharpGR_WPF.ViewModels
         }
 
         /// <summary>
-        /// 音量スライダーの初期の値
-        /// </summary>
-        private double volumeSlider = 100;
-
-        /// <summary>
-        /// 音量スライダーの新しい値
-        /// </summary>
-        public double VolumeSlider
-        {
-            get => volumeSlider;
-            set
-            {
-                volumeSlider = value;
-                SetProperty();
-            }
-        }
-
-        /// <summary>
         /// 音量テキストボックスの初期の文字列
         /// </summary>
-        private string volumeText = "100";
+        private double volume = 100;
+
+        /// <summary>
+        /// 前回の音量値の保存用
+        /// </summary>
+        private double previousVolume;
 
         /// <summary>
         /// 音量テキストボックスの新しい文字列
         /// </summary>
-        public string VolumeText
+        public double Volume
         {
-            get => volumeText;
+            get => volume;
             set
             {
-                volumeText = value;
-                SetProperty();
+                volume = value;
+                if (double.TryParse(value.ToString(), out double parsedValue) && IsValidRange(parsedValue))
+                {
+                    previousVolume = parsedValue;
+                    SetProperty();
+                    UpdateNAudioVolume();
+                }
+                else
+                {
+                    volume = previousVolume;
+                    SetProperty();
+                    MessageBox.Show("無効な値です");
+                }
             }
         }
 
@@ -254,6 +253,10 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
+        #endregion
+
+        #region Command
+
         /// <summary>
         /// 再生ボタンクリック時のイベント
         /// </summary>
@@ -269,7 +272,9 @@ namespace SharpGR_WPF.ViewModels
         /// </summary>
         public ICommand CloseCommand { get; }
 
-        public MainWindowViewModel(Window owner)
+        #endregion
+
+        public MainWindowViewModel()
         {
             // 再生ボタンクリック時のイベントにメソッドをバインド
             PlayButtonClickCommand = new RelayCommand(_ => PlayButtonClick(), _ => true);
@@ -331,17 +336,18 @@ namespace SharpGR_WPF.ViewModels
                     logger.Info($"設定ファイルを読み込みました。\n再生状態は {settingInfo.PlaybackState} です。\n音量は {settingInfo.Volume} %です。");
 
                     // 音量を反映する
-                    //VolumeSlider.Value = Convert.ToInt32(settingInfo.Volume);
-                    //VolumeTextBox.Text = settingInfo.Volume.ToString();
-                    VolumeSlider = settingInfo.Volume;
-                    VolumeText = settingInfo.Volume.ToString();
-                    logger.Info($"音量を {settingInfo.Volume} %に設定しました。");
+                    int volume = settingInfo.Volume;
+                    Volume = volume;
+                    waveOutEvent.Volume = (float)(volume / 100.0);
+                    logger.Info($"音量を {volume} %に設定しました。");
+                    timer.Tick += Timer_Tick;
+                    timer.Start();
+                    await GetSongInfoFromAPIAsync();
 
                     if (settingInfo.PlaybackState == PlaybackState.Playing && waveOutEvent.PlaybackState != PlaybackState.Playing)
                     {
                         logger.Info("幻想郷ラジオの再生を開始します。");
-                        await StartRadioAsync();
-                        timer.Tick += Timer_Tick;
+                        StartRadio();
                     }
 
                     else
@@ -358,14 +364,13 @@ namespace SharpGR_WPF.ViewModels
                     _ = MessageBox.Show(errorMessage, "エラーが発生しました", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                     // 音量を反映する
-                    //VolumeSlider.Value = Convert.ToInt32(settingInfo.Volume);
-                    //VolumeTextBox.Text = settingInfo.Volume.ToString();
-                    VolumeSlider = settingInfo.Volume;
-                    VolumeText = settingInfo.Volume.ToString();
+                    int volume = settingInfo.Volume;
+                    Volume = volume;
+                    waveOutEvent.Volume = volume;
 
                     if (settingInfo.PlaybackState == PlaybackState.Playing && waveOutEvent.PlaybackState != PlaybackState.Playing)
                     {
-                        await StartRadioAsync();
+                        StartRadio();
                     }
 
                     else
@@ -383,11 +388,11 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private async void PlayButtonClick()
+        private void PlayButtonClick()
         {
             if (waveOutEvent.PlaybackState != PlaybackState.Playing)
             {
-                await StartRadioAsync();
+                StartRadio();
             }
 
             else
@@ -399,14 +404,12 @@ namespace SharpGR_WPF.ViewModels
         /// <summary>
         /// 幻想郷ラジオを再生
         /// </summary>
-        private async Task StartRadioAsync()
+        private void StartRadio()
         {
             try
             {
                 PlayButtonText = "停止";
                 waveOutEvent.Init(mediaFoundationReader);
-                await GetSongInfoFromAPIAsync();
-                timer.Start();
                 waveOutEvent.Play();
             }
 
@@ -415,6 +418,24 @@ namespace SharpGR_WPF.ViewModels
                 string errorMessage = "再生中にエラーが発生しました";
                 _ = MessageBox.Show(errorMessage, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>
+        /// ユーザーが入力した音量の範囲チェック
+        /// </summary>
+        /// <param name="value">ユーザーが入力した音量</param>
+        /// <returns>0～100の範囲内なら true、範囲外なら false</returns>
+        private bool IsValidRange(double value)
+        {
+            return value >= 0 && value <= 100;
+        }
+
+        /// <summary>
+        /// 音量を変更（音量スライダーまたはテキストボックスの内容が変わったときに発動）
+        /// </summary>
+        private void UpdateNAudioVolume()
+        {
+            waveOutEvent.Volume = (float)(Volume / 100f);
         }
 
         /// <summary>
@@ -570,9 +591,18 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-
         private void CloseWindow()
         {
+            if (PlayButtonText == "再生")
+            {
+                settingInfo.PlaybackState = PlaybackState.Stopped;
+            }
+            else
+            {
+                settingInfo.PlaybackState = PlaybackState.Playing;
+            }
+            settingInfo.Volume = (int)Volume;
+            JsonUtility.WriteJson(FORM_MAIN_SETTING_FILE_NAME, settingInfo);
             System.Windows.Application.Current.Shutdown();
         }
 
