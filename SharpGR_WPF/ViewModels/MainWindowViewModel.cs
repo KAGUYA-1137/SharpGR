@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using NAudio.Wave;
 using NLog;
-using SharpGR_WPF.FileIO;
+using SharpGR_WPF.IO;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace SharpGR_WPF.ViewModels
@@ -20,47 +20,6 @@ namespace SharpGR_WPF.ViewModels
     /// </summary>
     public class MainWindowViewModel : BaseViewModel
     {
-        #region Constants
-
-        /// <summary>
-        /// 設定ファイルのディレクトリ
-        /// </summary>
-        private const string SETTING_FOOTER = "Setting\\";
-
-        /// <summary>
-        /// メイン画面の設定が記載されたファイル名
-        /// </summary>
-        private const string FORM_MAIN_SETTING_FILE_NAME = $"{SETTING_FOOTER}Form1.json";
-
-        /// <summary>
-        /// 幻想郷ラジオのストリームエンドポイント
-        /// </summary>
-        private const string STREAM_ENDPOINT = "https://stream.gensokyoradio.net/3";
-
-        /// <summary>
-        /// 幻想郷ラジオで再生中の楽曲情報の取得先
-        /// </summary>
-        private const string SONG_INFO_API = "https://gensokyoradio.net/api/station/playing/";
-
-        /// <summary>
-        /// 幻想郷ラジオのアルバムアート取得先の絶対パス
-        /// </summary>
-        private const string ALBUM_ART_PREFIX = "https://gensokyoradio.net/images/albums/500/";
-
-        /// <summary>
-        /// 幻想郷ラジオのデフォルトのアルバムアートのパス
-        /// </summary>
-        private const string ALBUM_ART_PLACEHOLDER = "https://gensokyoradio.net/images/assets/gr-logo-placeholder.png";
-
-        /// <summary>
-        /// 幻想郷ラジオのアルバム情報のURL
-        /// </summary>
-        private const string ALBUM_INFO_LINK = "https://gensokyoradio.net/music/album/";
-
-        private const string BLANK = "----";
-
-        #endregion
-
         #region Variable
 
         private readonly WaveOutEvent waveOutEvent = new WaveOutEvent();
@@ -68,7 +27,7 @@ namespace SharpGR_WPF.ViewModels
         /// <summary>
         /// 任意のファイルを読み込むクラス
         /// </summary>
-        private readonly MediaFoundationReader mediaFoundationReader = new MediaFoundationReader(STREAM_ENDPOINT);
+        private readonly MediaFoundationReader mediaFoundationReader = new MediaFoundationReader(Constants.StreamEndpoint);
 
         /// <summary>
         /// 設定ファイルの構造
@@ -193,7 +152,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string timeLabelText = "--:-- / --:--";
+        private string timeLabelText = Constants.BlankTimer;
 
         public string TimeLabelText
         {
@@ -205,7 +164,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string nameLabelText = BLANK;
+        private string nameLabelText = Constants.Blank;
 
         public string NameLabelText
         {
@@ -217,7 +176,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string artistLabelText = BLANK;
+        private string artistLabelText = Constants.Blank;
 
         public string ArtistLabelText
         {
@@ -229,7 +188,7 @@ namespace SharpGR_WPF.ViewModels
             }
         }
 
-        private string albumNameLabelText = BLANK;
+        private string albumNameLabelText = Constants.Blank;
 
         public string AlbumNameLabelText
         {
@@ -252,6 +211,12 @@ namespace SharpGR_WPF.ViewModels
                 SetProperty();
             }
         }
+
+        private DispatcherTimer dispatcherTimer;
+
+        private string lastTitle = string.Empty;
+
+        private JsonUtility jsonUtility;
 
         #endregion
 
@@ -276,6 +241,7 @@ namespace SharpGR_WPF.ViewModels
 
         public MainWindowViewModel()
         {
+            jsonUtility = new JsonUtility();
             // 再生ボタンクリック時のイベントにメソッドをバインド
             PlayButtonClickCommand = new RelayCommand(_ => PlayButtonClick(), _ => true);
 
@@ -286,6 +252,14 @@ namespace SharpGR_WPF.ViewModels
 
             // タイトルバーに表示する文字列を設定
             AppTitle = $"{Assembly.GetExecutingAssembly().GetName().Name} Ver.{Assembly.GetExecutingAssembly().GetName().Version}";
+
+            dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Interval = TimeSpan.FromSeconds(1);
+            dispatcherTimer.Tick += (s, e) =>
+            {
+                UpdateCurrentTime();
+            };
+            dispatcherTimer.Start();
 
             _ = ReadSettingsAsync();
         }
@@ -298,22 +272,22 @@ namespace SharpGR_WPF.ViewModels
             try
             {
                 // 設定ファイルのディレクトリが存在しない場合
-                if (!Directory.Exists(SETTING_FOOTER))
+                if (!Directory.Exists(Constants.MainWindowSettingFileName))
                 {
                     logger.Warn("設定ファイルのディレクトリが存在しません。");
 
                     // 設定ファイルのディレクトリを作成
-                    DirectoryInfo directoryInfo = Directory.CreateDirectory(SETTING_FOOTER);
+                    DirectoryInfo directoryInfo = Directory.CreateDirectory(Constants.SettingFooter);
                     logger.Info($"設定ファイルのディレクトリを「{directoryInfo.FullName}」へ作成しました。");
                 }
 
                 // 設定ファイルが存在しない場合
-                if (!File.Exists(FORM_MAIN_SETTING_FILE_NAME))
+                if (!File.Exists(Constants.MainWindowSettingFileName))
                 {
                     logger.Warn("設定ファイルが存在しません。");
 
                     // 設定ファイルを作成してデフォルトの設定値を書き込み
-                    if (!JsonUtility.WriteJson(FORM_MAIN_SETTING_FILE_NAME, settingInfo))
+                    if (!jsonUtility.WriteJson(Constants.MainWindowSettingFileName, settingInfo))
                     {
                         string errorMessage = "設定ファイルの作成、またはデフォルトの設定値の書き込みに失敗しました。";
                         logger.Warn(errorMessage);
@@ -328,7 +302,7 @@ namespace SharpGR_WPF.ViewModels
 
                 logger.Info("設定ファイルを読み込みます。");
                 settingInfo = null;
-                settingInfo = JsonUtility.ReadJson<SettingInfo>(FORM_MAIN_SETTING_FILE_NAME, null);
+                settingInfo = jsonUtility.ReadSettingJson(Constants.MainWindowSettingFileName);
 
                 // 設定ファイルを読み込めた時
                 if (settingInfo != null)
@@ -340,8 +314,8 @@ namespace SharpGR_WPF.ViewModels
                     Volume = volume;
                     waveOutEvent.Volume = (float)(volume / 100.0);
                     logger.Info($"音量を {volume} %に設定しました。");
-                    timer.Tick += Timer_Tick;
-                    timer.Start();
+                    //timer.Tick += Timer_Tick;
+                    //timer.Start();
                     await GetSongInfoFromAPIAsync();
 
                     if (settingInfo.PlaybackState == PlaybackState.Playing && waveOutEvent.PlaybackState != PlaybackState.Playing)
@@ -438,27 +412,27 @@ namespace SharpGR_WPF.ViewModels
             waveOutEvent.Volume = (float)(Volume / 100f);
         }
 
-        /// <summary>
-        /// 1秒ごとに曲情報取得
-        /// </summary>
-        private async void Timer_Tick(object sender, EventArgs e)
-        {
-            await GetSongInfoFromAPIAsync();
+        ///// <summary>
+        ///// 1秒ごとに曲情報取得
+        ///// </summary>
+        //private async void Timer_Tick(object sender, EventArgs e)
+        //{
+        //    await GetSongInfoFromAPIAsync();
 
-            TimeSliderMax = Duration;
+        //    TimeSliderMax = Duration;
 
-            if (Played <= Duration)
-            {
-                TimeSliderValue = Played;
-            }
+        //    if (Played <= Duration)
+        //    {
+        //        TimeSliderValue = Played;
+        //    }
 
-            else
-            {
-                Played = 0;
-                TimeSliderValue = Played;
-                TimeLabelText = "--:-- / --:--";
-            }
-        }
+        //    else
+        //    {
+        //        Played = 0;
+        //        TimeSliderValue = Played;
+        //        TimeLabelText = "--:-- / --:--";
+        //    }
+        //}
 
         /// <summary>
         /// 幻想郷ラジオで再生中の楽曲情報を非同期で取得して画面へ反映。
@@ -467,109 +441,123 @@ namespace SharpGR_WPF.ViewModels
         /// <exception cref="HttpRequestException"></exception>
         private async Task GetSongInfoFromAPIAsync()
         {
-            try
+            while (true)
             {
-                logger.Info("幻想郷ラジオで再生中の楽曲情報を取得します。");
-
-                // HTTPリクエストメッセージを作成
-                logger.Info("HTTPリクエストメッセージを作成します。");
-                using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, SONG_INFO_API);
-                //SetStatusMessage("楽曲情報を取得しています...");
-                logger.Info($"HTTPリクエストメッセージを作成しました。\n{request}");
-
-                // HTTPリクエストを送信
-                logger.Info($"HTTPリクエストメッセージを {request.RequestUri} へ送信します。");
-                using HttpResponseMessage response = await httpClient.SendAsync(request);
-                logger.Info($"HTTPリクエストメッセージに対して以下のレスポンスメッセージが返されました。\n{response}");
-
-                if (response.StatusCode == HttpStatusCode.OK)
+                try
                 {
-                    logger.Info($"HTTPステータスコードは {response.StatusCode} です。");
+                    logger.Info("幻想郷ラジオで再生中の楽曲情報を取得します。");
 
-                    logger.Info("レスポンスメッセージからレスポンスボディを読み込みます。");
+                    // HTTPリクエストメッセージを作成
+                    logger.Info("HTTPリクエストメッセージを作成します。");
+                    using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, Constants.RadioAPIURL);
+                    //SetStatusMessage("楽曲情報を取得しています...");
+                    logger.Info($"HTTPリクエストメッセージを作成しました。\n{request}");
 
-                    // レスポンスボディを読み込む
-                    string resBody = await response.Content.ReadAsStringAsync();
-                    logger.Info($"以下のレスポンスボディを読み込みました。\n{resBody}");
+                    // HTTPリクエストを送信
+                    logger.Info($"HTTPリクエストメッセージを {request.RequestUri} へ送信します。");
+                    using HttpResponseMessage response = await httpClient.SendAsync(request);
+                    logger.Info($"HTTPリクエストメッセージに対して以下のレスポンスメッセージが返されました。\n{response}");
 
-                    // レスポンスボディをデシリアライズ
-                    radioAPI = JsonUtility.ReadJson<RadioAPI>(null, resBody);
-
-                    if (radioAPI != null)
+                    if (response.IsSuccessStatusCode)
                     {
-                        logger.Info("メイン画面の各コンポーネントへ楽曲情報を反映します。");
-                        //SetStatusMessage("楽曲情報を取得しました");
+                        logger.Info($"HTTPステータスコードは {response.StatusCode} です。");
 
-                        // デシリアライズしたオブジェクトから楽曲情報を取得
-                        if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.TITLE))
+                        logger.Info("レスポンスメッセージからレスポンスボディを読み込みます。");
+
+                        // レスポンスボディを読み込む
+                        string resBody = await response.Content.ReadAsStringAsync();
+                        logger.Info($"以下のレスポンスボディを読み込みました。\n{resBody}");
+
+                        jsonUtility.ParseAndSetData(resBody, this);
+
+                        string newTitle = JsonUtility.GetTitleFromResponse(resBody);
+
+                        if (!string.IsNullOrWhiteSpace(newTitle) && newTitle != NameLabelText)
                         {
-                            NameLabelText = BLANK;
-                        }
-                        NameLabelText = radioAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
-                        logger.Info($"楽曲名「{radioAPI.SONGINFO.TITLE}」を反映しました。");
-
-                        if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.ARTIST))
-                        {
-                            ArtistLabelText = BLANK;
-                        }
-                        ArtistLabelText = radioAPI.SONGINFO.ARTIST; // アーティスト名を設定
-                        logger.Info($"アーティスト名「{radioAPI.SONGINFO.ARTIST}」を反映しました。");
-
-                        AlbumNameLabelText = radioAPI.SONGINFO.ALBUM;   // アルバム名を設定
-                        logger.Info($"アルバム名「{radioAPI.SONGINFO.ALBUM}」を反映しました。");
-
-                        Duration = radioAPI.SONGTIMES.DURATION;  // 楽曲の総再生時間を設定
-                        logger.Info($"楽曲の長さ「{TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}」を反映しました。");
-
-                        Played = radioAPI.SONGTIMES.PLAYED;  // 現在の再生時間を設定
-                        logger.Info($"現在の再生時間「{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")}」を反映しました。");
-
-                        // 総再生時間と現在の再生時間を表示
-                        TimeLabelText = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";
-
-                        // アルバムアートが未定義の場合
-                        if (string.IsNullOrWhiteSpace(radioAPI.MISC.ALBUMART))
-                        {
-                            // デフォルトのアルバムアートを表示
-                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(ALBUM_ART_PLACEHOLDER);
+                            NameLabelText = newTitle;
+                            jsonUtility.ParseAndSetData(resBody, this);
                         }
 
-                        // アルバムアートが定義されている場合
-                        else
-                        {
-                            /* アルバムアート取得先の絶対パスと再生中の楽曲のアルバムアートのファイル名を合体して、
-                            再生中の楽曲のアルバムアートのパスを特定 */
-                            AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString($"{ALBUM_ART_PREFIX}{radioAPI.MISC.ALBUMART}");
-                        }
-                    }
+                        //// レスポンスボディをデシリアライズ
+                        //radioAPI = JsonUtility.(resBody);
 
-                    // 楽曲情報が空の場合
-                    else
-                    {
-                        throw new NullReferenceException("楽曲情報を取得できませんでした。");
+                        //if (radioAPI != null)
+                        //{
+                        //    logger.Info("メイン画面の各コンポーネントへ楽曲情報を反映します。");
+                        //    //SetStatusMessage("楽曲情報を取得しました");
+
+                        //    // デシリアライズしたオブジェクトから楽曲情報を取得
+                        //    if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.TITLE))
+                        //    {
+                        //        NameLabelText = Constants.Blank;
+                        //    }
+                        //    NameLabelText = radioAPI.SONGINFO.TITLE;    // 楽曲のタイトルを設定
+                        //    logger.Info($"楽曲名「{radioAPI.SONGINFO.TITLE}」を反映しました。");
+
+                        //    if (string.IsNullOrWhiteSpace(radioAPI.SONGINFO.ARTIST))
+                        //    {
+                        //        ArtistLabelText = Constants.Blank;
+                        //    }
+                        //    ArtistLabelText = radioAPI.SONGINFO.ARTIST; // アーティスト名を設定
+                        //    logger.Info($"アーティスト名「{radioAPI.SONGINFO.ARTIST}」を反映しました。");
+
+                        //    AlbumNameLabelText = radioAPI.SONGINFO.ALBUM;   // アルバム名を設定
+                        //    logger.Info($"アルバム名「{radioAPI.SONGINFO.ALBUM}」を反映しました。");
+
+                        //    Duration = radioAPI.SONGTIMES.DURATION;  // 楽曲の総再生時間を設定
+                        //    logger.Info($"楽曲の長さ「{TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}」を反映しました。");
+
+                        //    Played = radioAPI.SONGTIMES.PLAYED;  // 現在の再生時間を設定
+                        //    logger.Info($"現在の再生時間「{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")}」を反映しました。");
+
+                        //    // アルバムアートが未定義の場合
+                        //    if (string.IsNullOrWhiteSpace(radioAPI.MISC.ALBUMART))
+                        //    {
+                        //        // デフォルトのアルバムアートを表示
+                        //        AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.PlaceholderAlbumArtURL);
+                        //    }
+
+                        //    // アルバムアートが定義されている場合
+                        //    else
+                        //    {
+                        //        /* アルバムアート取得先の絶対パスと再生中の楽曲のアルバムアートのファイル名を合体して、
+                        //        再生中の楽曲のアルバムアートのパスを特定 */
+                        //        AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.AlbumArtPrefixURL}{radioAPI.MISC.ALBUMART}");
+                        //    }
+                        //}
+
+                        //// 楽曲情報が空の場合
+                        //else
+                        //{
+                        //    throw new NullReferenceException("楽曲情報を取得できませんでした。");
+                        //}
                     }
                 }
 
-                // ステータスコードが200 OK以外の場合
-                else
+                catch (Exception ex)
                 {
-                    logger.Error($"HTTPリクエストを送信しましたが、ステータスコードが {response.StatusCode} でした。");
-                    throw new HttpRequestException($"HTTPリクエストに失敗しました。\nステータスコード： {response.StatusCode}");
+                    string errorMessage = ex.Message;
+                    _ = MessageBox.Show(errorMessage, "エラーが発生しました。", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }
 
-            catch (Exception ex)
-            {
-                string errorMessage = ex.Message;
-                _ = MessageBox.Show(errorMessage, "エラーが発生しました。", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await Task.Delay(TimeSpan.FromSeconds(15));
             }
+        }
+
+        /// <summary>
+        /// 現在の再生時間を更新（タイマー表示）
+        /// </summary>
+        private void UpdateCurrentTime()
+        {
+            // 総再生時間と現在の再生時間を表示
+            TimeLabelText = $"{TimeSpan.FromSeconds(Played).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"m\:ss")}";
         }
 
         private void ArtWorkClick()
         {
             if (!string.IsNullOrWhiteSpace(radioAPI.SONGDATA.ALBUMID.ToString()))
             {
-                string link = $"{ALBUM_INFO_LINK}{radioAPI.SONGDATA.ALBUMID}/";
+                string link = $"{Constants.RadioAPIURL}{radioAPI.SONGDATA.ALBUMID}/";
 
                 if (MessageBox.Show(link, "アルバム情報をブラウザーで確認しますか？", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                 {
@@ -602,7 +590,8 @@ namespace SharpGR_WPF.ViewModels
                 settingInfo.PlaybackState = PlaybackState.Playing;
             }
             settingInfo.Volume = (int)Volume;
-            JsonUtility.WriteJson(FORM_MAIN_SETTING_FILE_NAME, settingInfo);
+
+            jsonUtility.WriteJson(Constants.MainWindowSettingFileName, settingInfo);
             System.Windows.Application.Current.Shutdown();
         }
 

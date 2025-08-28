@@ -9,7 +9,7 @@
         <toolkit:MediaElement x:Name="mediaElement" Grid.Row="0" ShouldAutoPlay="False" ShouldShowPlaybackControls="False" Source="{Binding StreamUrl}" StateChanged="MediaElement_StateChanged" PositionChanged="MediaElement_PositionChanged" MediaOpened="MediaElement_MediaOpened" />
 
         <VerticalStackLayout Grid.Row="1" Spacing="10" VerticalOptions="Center">
-            <Image x:Name="AlbumArtImage" Aspect="Fill"/>
+            <Image x:Name="AlbumArtImage" Aspect="Fill" Source="{Binding AlbumArt}"/>
             <Label Text="{Binding TrackTitle, StringFormat='{0}'}" FontSize="Large" FontAttributes="Bold"/>
             <Label Text="{Binding ArtistName, StringFormat='{0}'}" FontSize="Medium"/>
             <Label Text="{Binding AlbumName, StringFormat='{0}'}" FontSize="Medium"/>

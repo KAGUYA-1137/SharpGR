@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace SharpGR_MAUI
+namespace SharpGR_MAUI.Platforms.iOS
 {
     public class Program
     {

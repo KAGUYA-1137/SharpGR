@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace SharpGR_MAUI
+namespace SharpGR_MAUI.Platforms.MacCatalyst
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate
