@@ -34,8 +34,17 @@ namespace SharpGR_MAUI.ViewModels
         [ObservableProperty]
         private string durationText = "00:00:00";
 
-        [ObservableProperty]
-        private Image albumArt = new Image();
+        private Image albumArt;
+
+        public Image AlbumArt
+        {
+            get => albumArt;
+            set
+            {
+                albumArt = value;
+
+            }
+        }
 
         //[ObservableProperty]
         //private int durationValue;
