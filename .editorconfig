@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# IDE0008: 明示的な型の使用
+dotnet_diagnostic.IDE0008.severity = none

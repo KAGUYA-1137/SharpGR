@@ -1,5 +1,8 @@
 ﻿namespace SharpGR_WPF
 {
+    /// <summary>
+    /// 定数クラス
+    /// </summary>
     public static class Constants
     {
         /// <summary>

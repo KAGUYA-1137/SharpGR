@@ -1,13 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using NAudio.Wave;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SharpGR_WPF.ViewModels;
-using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
 namespace SharpGR_WPF.IO
@@ -17,11 +14,18 @@ namespace SharpGR_WPF.IO
     /// </summary>
     public class JsonUtility
     {
+        private MainWindowViewModel mainWindowViewModel;
+
+        public JsonUtility(MainWindowViewModel mainWindowViewModel)
+        {
+            this.mainWindowViewModel = mainWindowViewModel;
+        }
+
         /// <summary>
         /// 指定されたJSONファイルへ設定値を書き込みます。
         /// </summary>
-        /// <param name="filePath">ファイル名</param>
-        /// <param name="settingInfo">書き込むデータ</param>
+        /// <param name="filePath">設定値を書き込むファイル名</param>
+        /// <param name="settingInfo">書き込む設定値</param>
         /// <returns><see cref="bool"/>。設定を書き込めたらtrue、それ以外はfalse</returns>
         public bool WriteJson(string filePath, SettingInfo settingInfo)
         {
@@ -31,7 +35,6 @@ namespace SharpGR_WPF.IO
                 File.WriteAllText(filePath, json);
                 return true;
             }
-
             catch
             {
                 return false;
@@ -39,11 +42,11 @@ namespace SharpGR_WPF.IO
         }
 
         /// <summary>
-        /// 指定されたJSONファイルから設定値を読み込みます。
+        /// 指定されたJSONファイルから設定値を読み込み、メイン画面に反映します。
         /// </summary>
         /// <param name="filePath">読み込むファイル</param>
         /// <returns><see cref="SettingInfo"/></returns>
-        public SettingInfo ReadSettingJson(string filePath)
+        public void ReadSettingFromJson(string filePath)
         {
             try
             {
@@ -52,16 +55,28 @@ namespace SharpGR_WPF.IO
                 SettingInfo settingInfo = new SettingInfo();
                 settingInfo = JsonConvert.DeserializeObject<SettingInfo>(json);
 
-                // 設定ファイルから設定を読み込めたら設定値を返す
-                return settingInfo;
+                // メイン画面の音量テキストボックスに設定ファイルの音量値を反映
+                mainWindowViewModel.Volume = settingInfo.Volume;
+                mainWindowViewModel.waveOutEvent.Volume = (float)(settingInfo.Volume / 100.0);
+
+                if (settingInfo.PlaybackState == PlaybackState.Playing)
+                {
+                    // 設定ファイルに記載されている再生状態が「再生」か
+                    mainWindowViewModel.PlayButtonText = "一時停止";
+                    mainWindowViewModel.StartRadio();
+                }
+                else
+                {
+                    // 「一時停止」なら
+                    mainWindowViewModel.PlayButtonText = "再生";
+                    mainWindowViewModel.StopRadio();
+                }
             }
 
             catch (Exception ex)
             {
-                _ = MessageBox.Show("JSONの読み込みに失敗しました。", ex.Message, MessageBoxButton.OK, MessageBoxImage.Hand);
-
-                // 読み込めなかったら、nullを返す
-                return null;
+                MessageBox.Show("JSONの読み込みに失敗しました。", ex.Message, MessageBoxButton.OK, MessageBoxImage.Hand);
+                return;
             }
         }
 
@@ -70,78 +85,65 @@ namespace SharpGR_WPF.IO
         /// </summary>
         /// <param name="response">幻想郷ラジオのAPIからのレスポンスボディ</param>
         /// <param name="mainWindowViewModel">メイン画面のビューモデル</param>
-        public void ParseAndSetData(string response, MainWindowViewModel mainWindowViewModel)
+        public void ParseAndSetDataFromResponse(string response, MainWindowViewModel mainWindowViewModel)
         {
+            //await Task.Run(() =>
+            //{
             try
             {
-                JObject json = JObject.Parse(response);
+                //var RadioAPI = new RadioAPI();
+                mainWindowViewModel.RadioAPI = JsonConvert.DeserializeObject<RadioAPI>(response);
+                mainWindowViewModel.NameLabelText = mainWindowViewModel.RadioAPI.SONGINFO.TITLE;
+                mainWindowViewModel.ArtistLabelText = mainWindowViewModel.RadioAPI.SONGINFO.ARTIST;
+                mainWindowViewModel.AlbumNameLabelText = mainWindowViewModel.RadioAPI.SONGINFO.ALBUM;
+                mainWindowViewModel.RadioAPI.SONGTIMES.REMAINING = mainWindowViewModel.RadioAPI.SONGTIMES.REMAINING;
+                mainWindowViewModel.RadioAPI.SONGDATA.ALBUMID = mainWindowViewModel.RadioAPI.SONGDATA.ALBUMID;
+                mainWindowViewModel.TimeLabelText = $"{TimeSpan.FromSeconds(mainWindowViewModel.RadioAPI.SONGTIMES.PLAYED).ToString(@"m\:ss")} / {TimeSpan.FromSeconds(mainWindowViewModel.RadioAPI.SONGTIMES.DURATION).ToString(@"m\:ss")}";
 
-                JObject songInfo = (JObject)json["SONGINFO"];
-                if (songInfo == null)
-                {
-                    mainWindowViewModel.NameLabelText = songInfo["TITLE"]?.ToString() ?? Constants.Blank;
-                    mainWindowViewModel.ArtistLabelText = songInfo["ARTIST"].ToString() ?? Constants.Blank;
-                    mainWindowViewModel.AlbumNameLabelText = songInfo["ALBUM"].ToString();
-                }
-
-                string albumArtPath = json["MISC"]?["ALBUMART"]?.ToString();
+                string albumArtPath = mainWindowViewModel.RadioAPI.MISC.ALBUMART;
                 if (!string.IsNullOrWhiteSpace(albumArtPath))
                 {
-                    string fullUrl = $"{Constants.AlbumArtPrefixURL}{albumArtPath}";
+                    string fullAlbumArtPath = $"{Constants.AlbumArtPrefixURL}{albumArtPath}";
 
-                    Task.Run(async () =>
+                    try
                     {
-                        try
-                        {
-                            using HttpClient httpClient = new HttpClient();
-                            byte[] imageData = await httpClient.GetByteArrayAsync(fullUrl);
-                            BitmapImage bitmapImage = new BitmapImage();
-                            bitmapImage.BeginInit();
-                            bitmapImage.StreamSource = new MemoryStream(imageData);
-                            bitmapImage.EndInit();
-                            bitmapImage.Freeze();
-
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                mainWindowViewModel.AlbumArtImageSource = bitmapImage;
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "アルバムアートの読み込みに失敗しました。", MessageBoxButton.OK, MessageBoxImage.Hand);
-                            mainWindowViewModel.AlbumArtImageSource = null;
-                        }
-                    });
+                        mainWindowViewModel.AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(fullAlbumArtPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "アルバムアートの読み込みに失敗しました。", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        mainWindowViewModel.AlbumArtImageSource = null;
+                    }
                 }
-
                 else
                 {
-                    mainWindowViewModel.AlbumArtImageSource = null;
+                    mainWindowViewModel.AlbumArtImageSource = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.PlaceholderAlbumArtURL);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "レスポンスボディのパースに失敗しました。", MessageBoxButton.OK, MessageBoxImage.Hand);
             }
+            //});
         }
 
-        /// <summary>
-        /// レスポンスからタイトルを取得（曲が変わったことを検知するために必要）
-        /// </summary>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        public static string GetTitleFromResponse(string response)
-        {
-            try
-            {
-                JObject json = JObject.Parse(response);
-                JObject songInfo = (JObject)json["SONGINFO"];
-                return songInfo?["TITLE"]?.ToString() ?? Constants.Blank;
-            }
-            catch
-            {
-                return Constants.Blank;
-            }
-        }
+        ///// <summary>
+        ///// レスポンスからタイトルを取得（曲が変わったことを検知するために必要）
+        ///// </summary>
+        ///// <param name="response"></param>
+        ///// <returns></returns>
+        //public static string GetTitleFromResponse(string response)
+        //{
+        //    try
+        //    {
+        //        JObject json = JObject.Parse(response);
+        //        JObject songInfo = (JObject)json["SONGINFO"];
+        //        return songInfo?["TITLE"]?.ToString() ?? Constants.Blank;
+        //    }
+        //    catch
+        //    {
+        //        return Constants.Blank;
+        //    }
+        //}
     }
 }
