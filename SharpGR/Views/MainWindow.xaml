@@ -4,13 +4,23 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:vm="clr-namespace:SharpGR.ViewModels"
         xmlns:local="clr-namespace:SharpGR"
         mc:Ignorable="d"
-        Title="MainWindow"
+        d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        Title="{Binding AppTitle}"
         Height="400"
         Width="800"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource AppWindowStyle}">
+
+    <mah:MetroWindow.InputBindings>
+        <KeyBinding Key="Escape"
+                    Command="{Binding SaveSettingCommand}"/>
+        <KeyBinding Key="F4"
+                    Modifiers="Alt"
+                    Command="{Binding SaveSettingCommand}"/>
+    </mah:MetroWindow.InputBindings>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -53,12 +63,15 @@
                 <Slider Grid.Column="2"
                         Minimum="0"
                         Maximum="100"
-                        Style="{StaticResource SliderStyle}"/>
+                        Style="{StaticResource SliderStyle}"
+                        Value="{Binding Volume,UpdateSourceTrigger=PropertyChanged}"/>
 
                 <mah:NumericUpDown Grid.Column="4"
+                                   InterceptManualEnter="False"
                                    Minimum="0"
                                    Maximum="100"
-                                   Style="{StaticResource NumericUpDownStyle}"/>
+                                   Style="{StaticResource NumericUpDownStyle}"
+                                   Value="{Binding Volume,UpdateSourceTrigger=PropertyChanged}"/>
 
                 <Label Grid.Column="6"
                        Content="%"
@@ -71,7 +84,14 @@
                     <ColumnDefinition Width="1.5*"/>
                 </Grid.ColumnDefinitions>
 
-                <Image/>
+                <Image Cursor="Hand"
+                       Source="{Binding AlbumArt,UpdateSourceTrigger=PropertyChanged}"
+                       Stretch="Uniform">
+                    <Image.InputBindings>
+                        <MouseBinding MouseAction="LeftClick"
+                                      Command="{Binding OpenAlbumInfoCommand}"/>
+                    </Image.InputBindings>
+                </Image>
 
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
@@ -94,7 +114,8 @@
                         <Label Content="🎵："
                                Style="{StaticResource LabelStyle}"/>
 
-                        <Label Grid.Column="2"
+                        <Label Content="{Binding Title,UpdateSourceTrigger=PropertyChanged}"
+                               Grid.Column="2"
                                Style="{StaticResource LabelStyle}"/>
                     </Grid>
 
@@ -108,7 +129,8 @@
                         <Label Content="💿️："
                                Style="{StaticResource LabelStyle}"/>
 
-                        <Label Grid.Column="2"
+                        <Label Content="{Binding Album,UpdateSourceTrigger=PropertyChanged}"
+                               Grid.Column="2"
                                Style="{StaticResource LabelStyle}"/>
                     </Grid>
 
@@ -122,27 +144,37 @@
                         <Label Content="🤵："
                                Style="{StaticResource LabelStyle}"/>
 
-                        <Label Grid.Column="2"
+                        <Label Content="{Binding Artist,UpdateSourceTrigger=PropertyChanged}"
+                               Grid.Column="2"
                                Style="{StaticResource LabelStyle}"/>
                     </Grid>
                 </Grid>
             </Grid>
 
             <Grid Grid.Row="4">
-                <Label Style="{StaticResource LabelStyle}"/>
+                <Label Content="{Binding Time,UpdateSourceTrigger=PropertyChanged}"
+                       Style="{StaticResource LabelStyle}"/>
             </Grid>
 
             <Grid Grid.Row="6">
-                <Grid.ColumnDefinitions>
+                <!--<Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="10"/>
                     <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                </Grid.ColumnDefinitions>-->
 
-                <Button Style="{StaticResource ButtonStyle}"/>
+                <!--<ToggleButton Style="{StaticResource ToggleButtonStyle}"
+                              Command="{Binding ChangePlaybackStateCommand}"/>-->
 
-                <Slider Grid.Column="2"
-                        Style="{StaticResource SliderStyle}"/>
+                <!--<Button Content="{Binding PlayButtonText,UpdateSourceTrigger=PropertyChanged}"
+                        Command="{Binding ChangePlaybackStateCommand}"
+                        Style="{StaticResource ButtonStyle}"/>-->
+
+                <Slider IsEnabled="False"
+                        Minimum="0"
+                        Maximum="{Binding TimeSliderMaxValue,UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource SliderStyle}"
+                        Value="{Binding TimeSliderValue,UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
         </Grid>
     </Grid>

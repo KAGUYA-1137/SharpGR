@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using SharpGR.ViewModels;
 
 namespace SharpGR
 {
@@ -20,6 +21,9 @@ namespace SharpGR
         {
             // コンポーネントの初期化
             InitializeComponent();
+
+            // DataContext の設定
+            DataContext = new MainViewModel();
         }
     }
 }
