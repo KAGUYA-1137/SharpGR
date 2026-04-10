@@ -7,15 +7,18 @@ namespace SharpGR.Commands
     /// MVVMにおけるコマンドバインディングを簡素化するための、<see cref="ICommand"/>のカスタム実装です。<br/>
     /// ロジックを実行するメソッドと、実行可能かをチェックするメソッドをカプセル化します。
     /// </summary>
-    public class DelegateCommand : ICommand
+    /// <remarks>
+    /// 実行ロジックと実行可能チェックロジックの両方を持つ <see cref="DelegateCommand"/> の新しいインスタンスを初期化します。
+    /// </remarks>
+    /// <param name="execute">実行されるアクション。</param>
+    /// <param name="canExecute">コマンドが実行可能かをチェックする関数。</param>
+    public class DelegateCommand(Action execute, Func<bool> canExecute) : ICommand
     {
-        // コマンドが実行可能かどうかをチェックするメソッドを保持するデリゲートです。
-        // bool値を返すため、Func<bool>型を使用します。
-        private readonly Func<bool> canExecute;
-
-        // コマンドが呼び出されたときに実行されるメソッドを保持するデリゲートです。
-        // 値を返さないため、Action型を使用します。
-        private readonly Action execute;
+        /// <summary>
+        /// コマンドが呼び出されたときに実行されるメソッドを保持するデリゲートです。
+        /// 値を返さないため、Action型を使用します。
+        /// </summary>
+        private readonly Action _execute = execute;
 
         /// <summary>
         /// 常に実行可能な <see cref="DelegateCommand"/> の新しいインスタンスを初期化します。
@@ -24,19 +27,7 @@ namespace SharpGR.Commands
         /// <param name="execute">実行されるアクション。</param>
         public DelegateCommand(Action execute) : this(execute, () => true)
         {
-            this.execute = execute;
-        }
-
-        /// <summary>
-        /// 実行ロジックと実行可能チェックロジックの両方を持つ <see cref="DelegateCommand"/> の新しいインスタンスを初期化します。
-        /// </summary>
-        /// <param name="execute">実行されるアクション。</param>
-        /// <param name="canExecute">コマンドが実行可能かをチェックする関数。</param>
-        public DelegateCommand(Action execute, Func<bool> canExecute)
-        {
-            // 提供されたデリゲートをプライベートフィールドに割り当てます。
-            this.execute = execute;
-            this.canExecute = canExecute;
+            _execute = execute;
         }
 
         /// <summary>
@@ -76,7 +67,7 @@ namespace SharpGR.Commands
         public void Execute(object parameter)
         {
             // executeデリゲートを呼び出し、コマンドのアクションを実行します。
-            execute();
+            _execute();
         }
     }
 }
