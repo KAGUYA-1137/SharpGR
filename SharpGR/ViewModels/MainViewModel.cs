@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using NAudio.Wave;
 using SharpGR.Commands;
 using SharpGR.FileIO;
@@ -45,7 +45,7 @@ namespace SharpGR.ViewModels
                 if (SetProperty(ref volume, value))
                 {
                     // 音量を0.0から1.0の範囲に変換して音量を反映
-                    waveOutEvent.Volume = (float)(volume / 100.0);
+                    _waveOutEvent.Volume = (float)(volume / 100.0);
                 }
             }
         }
@@ -54,12 +54,12 @@ namespace SharpGR.ViewModels
         /// <summary>
         /// アルバムアートを取得または設定します。
         /// </summary>
-        public ImageSource AlbumArt
+        public BitmapImage AlbumArt
         {
             get => albumArt;
             set => SetProperty(ref albumArt, value);
         }
-        private ImageSource albumArt = null;
+        private BitmapImage albumArt = null;
 
         /// <summary>
         /// 楽曲名を取得または設定します。
@@ -128,18 +128,18 @@ namespace SharpGR.ViewModels
         /// <summary>
         /// JSONファイルへの書き込みと読み込みを行うためのインスタンスです。
         /// </summary>
-        private readonly JsonUtility jsonUtility = new JsonUtility();
+        private readonly JsonUtility _jsonUtility = new JsonUtility();
 
         /// <summary>
         /// アプリケーションの設定値を管理するためのインスタンスです。
         /// </summary>
-        private readonly SettingInfo settingInfo = new SettingInfo();
+        private readonly SettingInfo _settingInfo = new SettingInfo();
 
         /// <summary>
         /// オーディオストリームを読み取るためのインスタンスです。
         /// <see cref="Constants.StreamEndpoint"/>で指定されたストリームエンドポイントからオーディオデータを読み取ります。
         /// </summary>
-        private readonly MediaFoundationReader mediaFoundationReader = new MediaFoundationReader(Constants.StreamEndpoint);
+        private readonly MediaFoundationReader _mediaFoundationReader = new MediaFoundationReader(Constants.StreamEndpoint);
 
         /// <summary>
         /// NAudio の出力デバイスを管理するためのインスタンスです。
@@ -149,17 +149,17 @@ namespace SharpGR.ViewModels
         /// このインスタンスはコンストラクタで初期化されます。破棄処理（Dispose）は
         /// ライフサイクルに応じて必要に応じて実装してください。
         /// </remarks>
-        public WaveOutEvent waveOutEvent = new WaveOutEvent();
+        public WaveOutEvent _waveOutEvent = new WaveOutEvent();
 
         /// <summary>
         /// HTTP リクエストを送信するための <see cref="HttpClient"/> の共有インスタンスです。
         /// </summary>
-        private static readonly HttpClient httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient();
 
         /// <summary>
         /// 幻想郷ラジオのAPIから取得した楽曲情報を格納するためのインスタンスです。
         /// </summary>
-        private RadioAPI radioAPI;
+        private RadioAPI _radioAPI;
 
         #endregion
 
@@ -189,7 +189,7 @@ namespace SharpGR.ViewModels
                 SaveSettingCommand = new DelegateCommand(SaveSetting);
 
                 // WaveOutEvent を MediaFoundationReader で初期化
-                waveOutEvent.Init(mediaFoundationReader);
+                _waveOutEvent.Init(_mediaFoundationReader);
 
                 // アセンブリの情報を取得
                 var assembly = Assembly.GetExecutingAssembly().GetName();
@@ -211,23 +211,23 @@ namespace SharpGR.ViewModels
                 if (!File.Exists(Constants.MainWindowSettingFileName))
                 {
                     // デフォルトの設定値を使用して設定ファイルを作成
-                    jsonUtility.WriteToJson(Constants.MainWindowSettingFileName, this.settingInfo);
+                    _jsonUtility.WriteToJson(Constants.MainWindowSettingFileName, _settingInfo);
                 }
 
                 // 設定ファイルから設定値を読み込む
-                var settingInfo = jsonUtility.ReadSettingFromJson(Constants.MainWindowSettingFileName);
+                var settingInfo = _jsonUtility.ReadSettingFromJson(Constants.MainWindowSettingFileName);
 
                 // 設定値が null でない
                 if (settingInfo != null)
                 {
                     // 読み込んだ設定値をフィールドの settingInfo に反映
-                    this.settingInfo = settingInfo;
+                    _settingInfo = settingInfo;
 
                     // 設定値をメイン画面に反映
                     Volume = settingInfo.Volume;
 
                     // 音量を0.0から1.0の範囲に変換して反映
-                    waveOutEvent.Volume = (float)(settingInfo.Volume / 100.0);
+                    _waveOutEvent.Volume = (float)(settingInfo.Volume / 100.0);
 
                     // 再生の開始を非同期で行う
                     StartRadio();
@@ -239,8 +239,8 @@ namespace SharpGR.ViewModels
                     ShowErrorMessageBox("設定ファイルの読み込みに失敗しました。\nデフォルトの設定値を使用します。");
 
                     // デフォルトの設定値を使用して反映
-                    Volume = this.settingInfo.Volume;
-                    waveOutEvent.Volume = (float)(this.settingInfo.Volume / 100.0);
+                    Volume = _settingInfo.Volume;
+                    _waveOutEvent.Volume = (float)(_settingInfo.Volume / 100.0);
 
                     // 再生の開始を非同期で行う
                     StartRadio();
@@ -266,7 +266,7 @@ namespace SharpGR.ViewModels
             try
             {
                 // 再生の開始
-                waveOutEvent.Play();
+                _waveOutEvent.Play();
 
                 // アセンブリの情報を取得
                 var assembly = Assembly.GetExecutingAssembly().GetName();
@@ -275,13 +275,13 @@ namespace SharpGR.ViewModels
                 var version = assembly.Version;
 
                 // HTTPリクエストの User-Agent ヘッダーにアプリケーションの名前とバージョンを追加
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($"{assembly.Name} {version.Major}.{version.Minor} (https://github.com/KAGUYA-1137/SharpGR)");
+                _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($"{assembly.Name} {version.Major}.{version.Minor} (https://github.com/KAGUYA-1137/SharpGR)");
 
                 // アプリケーションが起動している間
                 while (true)
                 {
                     // 楽曲情報の取得を非同期で行う
-                    await GetSonInfoAsync();
+                    await GetSongInfoAsync();
                 }
             }
             // 例外が発生した
@@ -296,7 +296,7 @@ namespace SharpGR.ViewModels
         /// 楽曲情報を非同期で取得し、プロパティに反映させるメソッドです。
         /// </summary>
         /// <returns><see cref="Task"/> オブジェクト</returns>
-        private async Task GetSonInfoAsync()
+        private async Task GetSongInfoAsync()
         {
             try
             {
@@ -311,7 +311,7 @@ namespace SharpGR.ViewModels
                 }
 
                 // HTTPリクエストのUser-Agentヘッダーにアプリケーションの名前とバージョンを追加
-                request.Headers.UserAgent.ParseAdd(httpClient.DefaultRequestHeaders.UserAgent.ToString());
+                request.Headers.UserAgent.ParseAdd(_httpClient.DefaultRequestHeaders.UserAgent.ToString());
 
                 // HTTPリクエストの内容をコンソールに出力
                 Console.WriteLine($"リクエストの内容\n{request}");
@@ -320,50 +320,50 @@ namespace SharpGR.ViewModels
                 using (var response = await GetSongInfoWithRetryAsync())
                 {
                     // 取得した JSON データを RadioAPI クラスのインスタンスに変換
-                    radioAPI = jsonUtility.ParseFromResponse(await response.Content.ReadAsStringAsync());
+                    _radioAPI = _jsonUtility.ParseFromResponse(await response.Content.ReadAsStringAsync());
                 }
 
                 // 変換した RadioAPI インスタンスが null ではない
-                if (radioAPI != null)
+                if (_radioAPI != null)
                 {
                     // アルバムアートの URL を取得し、プロパティに反映
-                    var albumArtUrl = radioAPI.MISC.ALBUMART;
+                    var albumArtUrl = _radioAPI.MISC.ALBUMART;
 
                     // アルバムアートの URL が空でない
                     if (!string.IsNullOrWhiteSpace(albumArtUrl))
                     {
                         // アルバムアートの URL を使用して画像を取得し、プロパティに反映
-                        AlbumArt = (ImageSource)new ImageSourceConverter().ConvertFromString($"{Constants.AlbumArtPrefixURL}{albumArtUrl}");
+                        AlbumArt = await DownloadImageAsync($"{Constants.AlbumArtPrefixURL}{albumArtUrl}");
                     }
                     // アルバムアートの URL が空
                     else
                     {
                         // プレースホルダー画像をプロパティに反映
-                        AlbumArt = (ImageSource)new ImageSourceConverter().ConvertFromString(Constants.PlaceholderAlbumArtURL);
+                        AlbumArt = await DownloadImageAsync(Constants.PlaceholderAlbumArtURL);
                     }
 
                     // 楽曲情報をプロパティに反映
-                    Title = radioAPI.SONGINFO.TITLE;
-                    Artist = radioAPI.SONGINFO.ARTIST;
-                    Album = radioAPI.SONGINFO.ALBUM;
+                    Title = _radioAPI.SONGINFO.TITLE;
+                    Artist = _radioAPI.SONGINFO.ARTIST;
+                    Album = _radioAPI.SONGINFO.ALBUM;
 
                     // アルバム名が「album」でない = インターミッションではない
-                    if (radioAPI.SONGINFO.ALBUM != "album")
+                    if (_radioAPI.SONGINFO.ALBUM != "album")
                     {
-                        TimeSliderMaxValue = radioAPI.SONGTIMES.DURATION;
+                        TimeSliderMaxValue = _radioAPI.SONGTIMES.DURATION;
 
                         // 現在の再生時間が楽曲の総再生時間に5秒足した秒数になるまで繰り返し
                         // 5秒足すのは楽曲の終了と同時に再度リクエストを行うと、ステータスコード：429が返されることがあるため
-                        for (var i = radioAPI.SONGTIMES.PLAYED; i <= radioAPI.SONGTIMES.DURATION + 5; i++)
+                        for (var i = _radioAPI.SONGTIMES.PLAYED; i <= _radioAPI.SONGTIMES.DURATION + 5; i++)
                         {
                             // 1秒待機
                             await Task.Delay(1000);
 
                             // 経過時間と総再生時間を TimeSpan に変換して、mm:ss 形式の文字列にフォーマットしてプロパティに反映
-                            Time = $"{TimeSpan.FromSeconds(i + 1 - 5).ToString(@"m\:ss")}/{TimeSpan.FromSeconds(radioAPI.SONGTIMES.DURATION).ToString(@"m\:ss")}";
+                            Time = $"{TimeSpan.FromSeconds(i + 1 - 4).ToString(@"m\:ss")}/{TimeSpan.FromSeconds(_radioAPI.SONGTIMES.DURATION).ToString(@"m\:ss")}";
 
                             // 現在の楽曲の再生位置を表すスライダーの値を更新
-                            TimeSliderValue = i + 1 - 5;
+                            TimeSliderValue = i + 1 - 4;
                         }
                     }
                     // アルバム名が「album」である = インターミッション
@@ -372,16 +372,16 @@ namespace SharpGR.ViewModels
                         TimeSliderMaxValue = 40;
 
                         // 現在の再生時間が40秒になるまで繰り返し
-                        for (var i = radioAPI.SONGTIMES.PLAYED; i <= 40; i++)
+                        for (var i = _radioAPI.SONGTIMES.PLAYED; i <= 40; i++)
                         {
                             // 1秒待機
                             await Task.Delay(1000);
 
                             // 経過時間と総再生時間を TimeSpan に変換して、mm:ss 形式の文字列にフォーマットしてプロパティに反映
-                            Time = $"{TimeSpan.FromSeconds(i + 1 - 5).ToString(@"m\:ss")}/{TimeSpan.FromSeconds(40).ToString(@"m\:ss")}";
+                            Time = $"{TimeSpan.FromSeconds(i + 1 - 4).ToString(@"m\:ss")}/{TimeSpan.FromSeconds(40).ToString(@"m\:ss")}";
 
                             // 現在の楽曲の再生位置を表すスライダーの値を更新
-                            TimeSliderValue = i + 1 - 5;
+                            TimeSliderValue = i + 1 - 4;
                         }
                     }
                 }
@@ -401,6 +401,91 @@ namespace SharpGR.ViewModels
         }
 
         /// <summary>
+        /// 画像を非同期でダウンロードし、UIスレッドで<see cref="BitmapImage"/>オブジェクトを作成して返すメソッドです。
+        /// </summary>
+        /// <param name="url">画像のURL</param>
+        /// <returns>作成された<see cref="BitmapImage"/>オブジェクト</returns>
+        private async Task<BitmapImage> DownloadImageAsync(string url)
+        {
+            // 画像を非同期でダウンロードしてバイト配列として取得
+            var bytes = await DownloadImageBytesAsync(url).ConfigureAwait(false);
+
+            // ダウンロードしたバイト配列からBitmapImageを作成して返す。
+            // UIスレッドで実行する必要があるため、Dispatcherを使用してUIスレッドで処理を行う。
+            return await Application.Current.Dispatcher.InvokeAsync(() => CreateBitmapImageFromBytes(bytes));
+        }
+
+        /// <summary>
+        /// 指定された URL から画像を非同期でダウンロードし、バイト配列として返すメソッドです。
+        /// </summary>
+        /// <param name="url">画像のURL</param>
+        /// <returns>画像データを含むバイト配列</returns>
+        private async Task<byte[]> DownloadImageBytesAsync(string url)
+        {
+            try
+            {
+                // 指定された URL から画像を非同期でダウンロードし、バイト配列として返す
+                return await _httpClient.GetByteArrayAsync(url);
+            }
+            // 例外が発生した
+            catch (Exception exception)
+            {
+                // 例外の内容をエラーメッセージボックスに表示
+                ShowErrorMessageBox($"{exception.Message}\n\n{exception.StackTrace}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 指定されたバイト配列から新しい <see cref="BitmapImage"/> インスタンスを作成します。
+        /// </summary>
+        /// <remarks><see cref="BitmapImage"/> の読み込み時に例外が発生した場合、エラーメッセージが表示され、<see langword="null"/> が返されます。freezing が <see
+        /// langword="true"/> かつ <see cref="BitmapImage"/> がフリーズ可能な場合、返されるインスタンスはフリーズされます。</remarks>
+        /// <param name="imageBytes">画像データを含むバイト配列。<see langword="null"/> または無効なデータの場合は <see langword="null"/> を返します。</param>
+        /// <param name="freezing">作成した <see cref="BitmapImage"/> をフリーズするかどうかを指定します。既定値は <see langword="true"/> です。フリーズすると、スレッドセーフになりパフォーマンスが向上します。</param>
+        /// <returns>作成された <see cref="BitmapImage"/>。imageBytes が無効な場合やエラーが発生した場合は <see langword="null"/>。</returns>
+        private static BitmapImage CreateBitmapImageFromBytes(byte[] imageBytes, bool freezing = true)
+        {
+            try
+            {
+                // バイト配列が <see langword="null"/> または空の場合は <see langword="null"/> を返す
+                using var memoryStream = new MemoryStream(imageBytes);
+
+                // BitmapImage を作成
+                var bitmapImage = new BitmapImage();
+
+                // BitmapImage の初期化を開始
+                bitmapImage.BeginInit();
+
+                // キャッシュオプションを OnLoad に設定して、ストリームを閉じた後も BitmapImage が画像データにアクセスできるようにする
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+
+                // ストリームを BitmapImage のソースとして設定
+                bitmapImage.StreamSource = memoryStream;
+
+                // BitmapImage の初期化を終了して、画像データの読み込みを完了
+                bitmapImage.EndInit();
+
+                // 画像の読み込みが完了した後、必要に応じて BitmapImage をフリーズしてスレッドセーフにする
+                if (freezing && bitmapImage.CanFreeze)
+                {
+                    // BitmapImage をフリーズして、スレッドセーフにし、パフォーマンスを向上させる
+                    bitmapImage.Freeze();
+                }
+
+                // 作成された BitmapImage を返す
+                return bitmapImage;
+            }
+            // 例外が発生した
+            catch (Exception exception)
+            {
+                // 例外の内容をエラーメッセージボックスに表示
+                ShowErrorMessageBox($"{exception.Message}\n\n{exception.StackTrace}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 指定された回数だけリトライを行いながら楽曲情報を取得する非同期メソッドです。
         /// </summary>
         /// <param name="maxRetries">最大リトライ回数</param>
@@ -415,7 +500,7 @@ namespace SharpGR.ViewModels
 
             while (retryCount < maxRetries)
             {
-                var response = await httpClient.GetAsync(Constants.RadioAPIURL);
+                var response = await _httpClient.GetAsync(Constants.RadioAPIURL);
 
                 // HTTPレスポンスの内容をコンソールに出力
                 Console.WriteLine($"レスポンスの内容\n{await response.Content.ReadAsStringAsync()}");
@@ -442,10 +527,10 @@ namespace SharpGR.ViewModels
             try
             {
                 // アルバムIDが空でない
-                if (!string.IsNullOrWhiteSpace(radioAPI.SONGDATA.ALBUMID.ToString()))
+                if (!string.IsNullOrWhiteSpace(_radioAPI.SONGDATA.ALBUMID.ToString()))
                 {
                     // アルバム情報のページの URL を構築
-                    var albumInfoUrl = $"{Constants.AlbumInfoURL}{radioAPI.SONGDATA.ALBUMID}/";
+                    var albumInfoUrl = $"{Constants.AlbumInfoURL}{_radioAPI.SONGDATA.ALBUMID}/";
 
                     // アルバム情報のページを開くかどうかをユーザーに確認するメッセージボックスを表示し、ユーザーが「はい」を選択した
                     if (ShowQuestionMessageBox("アルバム情報のページを開きますか？") == MessageBoxResult.Yes)
@@ -489,10 +574,10 @@ namespace SharpGR.ViewModels
             try
             {
                 // 設定値をフィールドの settingInfo に反映
-                settingInfo.Volume = (int)Volume;
+                _settingInfo.Volume = (int)Volume;
 
                 // 設定ファイルに設定値を書き込む
-                jsonUtility.WriteToJson(Constants.MainWindowSettingFileName, settingInfo);
+                _jsonUtility.WriteToJson(Constants.MainWindowSettingFileName, _settingInfo);
 
                 // アプリケーションを正常終了
                 Application.Current.Shutdown(0);
