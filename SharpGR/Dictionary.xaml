@@ -54,7 +54,9 @@
     </Style>
 
     <!-- ボタンのスタイル -->
-    <Style x:Key="ToggleButtonStyle" TargetType="ToggleButton" BasedOn="{StaticResource MahApps.Styles.ToggleButton.Circle}">
+    <Style x:Key="ToggleButtonStyle"
+           TargetType="ToggleButton"
+           BasedOn="{StaticResource MahApps.Styles.ToggleButton.Circle}">
         <Setter Property="Content">
             <Setter.Value>
                 <iconPacks:PackIconMaterial>
@@ -71,5 +73,7 @@
             </iconPacks:PackIconMaterial>
             </Setter.Value>
         </Setter>
+        <Setter Property="Background" Value="Black"/>
+        <Setter Property="Foreground" Value="White"/>
     </Style>
 </ResourceDictionary>

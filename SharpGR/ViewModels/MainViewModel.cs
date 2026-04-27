@@ -121,6 +121,16 @@ namespace SharpGR.ViewModels
         }
         private double timeSliderMaxValue = 0.0;
 
+        /// <summary>
+        /// 再生中かどうかを取得または設定します。
+        /// </summary>
+        public bool IsPlaying
+        {
+            get => isPlaying;
+            set => SetProperty(ref isPlaying, value);
+        }
+        private bool isPlaying = false;
+
         #endregion
 
         #region フィールド
@@ -166,6 +176,11 @@ namespace SharpGR.ViewModels
         #region コマンド
 
         /// <summary>
+        /// 再生状態を変更するコマンドを取得します。
+        /// </summary>
+        public DelegateCommand ChangePlaybackStateCommand { get; private set; }
+
+        /// <summary>
         /// アルバム情報を表示するコマンドを取得します。
         /// </summary>
         public DelegateCommand OpenAlbumInfoCommand { get; private set; }
@@ -185,6 +200,7 @@ namespace SharpGR.ViewModels
             try
             {
                 // コマンドとメソッドの関連付け
+                ChangePlaybackStateCommand = new DelegateCommand(ChangePlaybackState);
                 OpenAlbumInfoCommand = new DelegateCommand(ClickedAlbumArt);
                 SaveSettingCommand = new DelegateCommand(SaveSetting);
 
@@ -267,6 +283,8 @@ namespace SharpGR.ViewModels
             {
                 // 再生の開始
                 _waveOutEvent.Play();
+
+                IsPlaying = true;
 
                 // アセンブリの情報を取得
                 var assembly = Assembly.GetExecutingAssembly().GetName();
@@ -517,6 +535,34 @@ namespace SharpGR.ViewModels
                 }
             }
             throw new HttpRequestException("最大リトライ回数に達しました。");
+        }
+
+        /// <summary>
+        /// 再生状態切り替え
+        /// </summary>
+        private void ChangePlaybackState()
+        {
+            try
+            {
+                // 再生中
+                if (_waveOutEvent.PlaybackState == PlaybackState.Playing)
+                {
+                    // 一時停止
+                    _waveOutEvent.Pause();
+                    IsPlaying = false;
+                }
+                // 再生されていない
+                else
+                {
+                    // 再生
+                    _waveOutEvent.Play();
+                    IsPlaying = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessageBox($"再生状態の切り替えに失敗:{ex.StackTrace}\n\n{ex.Message}");
+            }
         }
 
         /// <summary>

@@ -157,24 +157,21 @@
             </Grid>
 
             <Grid Grid.Row="6">
-                <!--<Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="10"/>
                     <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>-->
+                </Grid.ColumnDefinitions>
 
-                <!--<ToggleButton Style="{StaticResource ToggleButtonStyle}"
-                              Command="{Binding ChangePlaybackStateCommand}"/>-->
-
-                <!--<Button Content="{Binding PlayButtonText,UpdateSourceTrigger=PropertyChanged}"
-                        Command="{Binding ChangePlaybackStateCommand}"
-                        Style="{StaticResource ButtonStyle}"/>-->
+                <ToggleButton Style="{StaticResource ToggleButtonStyle}"
+                              Command="{Binding ChangePlaybackStateCommand}"/>
 
                 <Slider IsEnabled="False"
                         Minimum="0"
                         Maximum="{Binding TimeSliderMaxValue,UpdateSourceTrigger=PropertyChanged}"
                         Style="{StaticResource SliderStyle}"
-                        Value="{Binding TimeSliderValue,UpdateSourceTrigger=PropertyChanged}"/>
+                        Value="{Binding TimeSliderValue,UpdateSourceTrigger=PropertyChanged}"
+                        Grid.Column="2"/>
             </Grid>
         </Grid>
     </Grid>
