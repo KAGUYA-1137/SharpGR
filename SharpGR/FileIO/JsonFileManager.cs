@@ -1,22 +1,20 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
 using SharpGR.Property;
-using static SharpGR.Helper.MessageBoxHelper;
 
 namespace SharpGR.FileIO
 {
     /// <summary>
-    /// JSONの読み書きを行うクラスです。
+    /// JSONの読み書きを行うクラスです
     /// </summary>
-    public class JsonUtility
+    public class JsonFileManager
     {
         /// <summary>
-        /// 指定されたJSONファイルへ設定値を書き込みます。
+        /// 指定されたJSONファイルへ設定値を書き込みます
         /// </summary>
         /// <param name="filePath">設定値を書き込むファイル名</param>
         /// <param name="settingInfo">書き込む設定値</param>
-        public void WriteToJson(string filePath, SettingInfo settingInfo)
+        public void SaveSetting(string filePath, SettingInfo settingInfo)
         {
             try
             {
@@ -27,20 +25,19 @@ namespace SharpGR.FileIO
                 File.WriteAllText(filePath, jsonStr);
             }
             // 例外が発生した
-            catch (Exception exception)
+            catch
             {
-                // エラーメッセージを表示
-                ShowErrorMessageBox($"{exception.Message}\n\n{exception.StackTrace}");
+                throw;
             }
         }
 
         /// <summary>
-        /// 指定されたJSONファイルから設定値を読み込みます。
+        /// 指定されたJSONファイルから設定値を読み込みます
         /// </summary>
         /// <param name="filePath">読み込むファイル</param>
-        /// <returns>読み込んだ設定値を<see cref="SettingInfo"/>として返します。
-        /// 読み込めなかった場合は <c>null</c> を返します。</returns>
-        public SettingInfo ReadSettingFromJson(string filePath)
+        /// <returns>読み込んだ設定値を<see cref="SettingInfo"/>として返します
+        /// 読み込めなかった場合は <c>null</c> を返します</returns>
+        public SettingInfo LoadSetting(string filePath)
         {
             try
             {
@@ -54,22 +51,18 @@ namespace SharpGR.FileIO
                 return settingInfo;
             }
             // 例外が発生した
-            catch (Exception ex)
+            catch
             {
-                // エラーメッセージを表示
-                ShowErrorMessageBox($"{ex.Message}\n\n{ex.StackTrace}");
-
-                // nullを返す
-                return null;
+                throw;
             }
         }
 
         /// <summary>
-        /// 幻想郷ラジオからのレスポンスボディと等価の <see cref="RadioAPI"/> を返します。
+        /// 幻想郷ラジオからのレスポンスボディと等価の <see cref="RadioAPI"/> を返します
         /// </summary>
         /// <param name="response">幻想郷ラジオからのレスポンスボディ</param>
-        /// <returns>レスポンスボディと等価の<see cref="RadioAPI"/>。パースに失敗した場合は <c>null</c> を返します。</returns>
-        public RadioAPI ParseFromResponse(string response)
+        /// <returns>レスポンスボディと等価の<see cref="RadioAPI"/>パースに失敗した場合は <c>null</c> を返します</returns>
+        public RadioAPI ParseResponse(string response)
         {
             try
             {
@@ -77,13 +70,9 @@ namespace SharpGR.FileIO
                 return JsonConvert.DeserializeObject<RadioAPI>(response);
             }
             // 例外が発生した
-            catch (Exception ex)
+            catch
             {
-                // エラーメッセージを表示
-                ShowErrorMessageBox($"{ex.Message}\n\n{ex.StackTrace}");
-
-                // nullを返す
-                return null;
+                throw;
             }
         }
     }

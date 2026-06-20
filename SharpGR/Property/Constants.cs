@@ -1,7 +1,7 @@
 ﻿namespace SharpGR.Property
 {
     /// <summary>
-    /// 定数を定義するクラスです。
+    /// 定数を定義するクラスです
     /// </summary>
     public class Constants
     {
