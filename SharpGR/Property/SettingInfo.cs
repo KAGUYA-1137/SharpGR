@@ -1,7 +1,7 @@
 ﻿namespace SharpGR.Property
 {
     /// <summary>
-    /// 設定値を保持するクラス。
+    /// 設定値を保持するクラス
     /// </summary>
     public class SettingInfo
     {
