@@ -7,14 +7,14 @@ namespace SharpGR.FileIO
     /// <summary>
     /// JSONの読み書きを行うクラスです
     /// </summary>
-    public class JsonFileManager
+    public static class JsonFileManager
     {
         /// <summary>
         /// 指定されたJSONファイルへ設定値を書き込みます
         /// </summary>
         /// <param name="filePath">設定値を書き込むファイル名</param>
         /// <param name="settingInfo">書き込む設定値</param>
-        public void SaveSetting(string filePath, SettingInfo settingInfo)
+        public static void SaveSetting(string filePath, SettingInfo settingInfo)
         {
             try
             {
@@ -37,7 +37,8 @@ namespace SharpGR.FileIO
         /// <param name="filePath">読み込むファイル</param>
         /// <returns>読み込んだ設定値を<see cref="SettingInfo"/>として返します
         /// 読み込めなかった場合は <c>null</c> を返します</returns>
-        public SettingInfo LoadSetting(string filePath)
+        /// <exception cref="JsonReaderException">設定ファイルの形式が不正な場合</exception>
+        public static SettingInfo LoadSetting(string filePath)
         {
             try
             {
@@ -45,7 +46,9 @@ namespace SharpGR.FileIO
                 var json = File.ReadAllText(filePath);
 
                 // JSON文字列をパースして、SettingInfoクラスのインスタンスを生成
-                var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(json);
+                // 設定値の読み込みに失敗した場合は例外をスローする
+                var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(json)
+                                  ?? throw new JsonReaderException("設定ファイルをパースできませんでした。");
 
                 // 読み込んだ設定値を返す
                 return settingInfo;
@@ -61,13 +64,19 @@ namespace SharpGR.FileIO
         /// 幻想郷ラジオからのレスポンスボディと等価の <see cref="RadioAPI"/> を返します
         /// </summary>
         /// <param name="response">幻想郷ラジオからのレスポンスボディ</param>
-        /// <returns>レスポンスボディと等価の<see cref="RadioAPI"/>パースに失敗した場合は <c>null</c> を返します</returns>
-        public RadioAPI ParseResponse(string response)
+        /// <returns>レスポンスボディと等価の<see cref="RadioAPI"/>。<br/>
+        /// パースに失敗した場合は <c>null</c> を返します。</returns>
+        public static RadioAPI ParseResponse(string response)
         {
             try
             {
-                // レスポンスボディをパースして、RadioAPIクラスのインスタンスを生成して返す
-                return JsonConvert.DeserializeObject<RadioAPI>(response);
+                // レスポンスボディをパース
+                // パースに失敗した場合は例外をスローする
+                var radioAPI = JsonConvert.DeserializeObject<RadioAPI>(response)
+                               ?? throw new JsonReaderException("レスポンスボディをパースできませんでした。");
+
+                // RadioAPIを返す
+                return radioAPI;
             }
             // 例外が発生した
             catch
