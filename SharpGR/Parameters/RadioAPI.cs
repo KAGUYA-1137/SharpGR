@@ -50,7 +50,7 @@
         /// <summary>
         /// ステータス
         /// </summary>
-        public string? STATUS { get; set; }
+        public string STATUS { get; set; }
 
         /// <summary>
         /// 現在の鑑賞人数
@@ -60,12 +60,12 @@
         /// <summary>
         /// ストリーム情報
         /// </summary>
-        public STREAMS? STREAMS { get; set; }
+        public STREAMS STREAMS { get; set; }
 
         /// <summary>
         /// モード
         /// </summary>
-        public string? MODE { get; set; }
+        public string MODE { get; set; }
     }
 
     /// <summary>
@@ -76,27 +76,27 @@
         /// <summary>
         /// 1つ目のサーバーのストリーム情報
         /// </summary>
-        public _1? _1 { get; set; }
+        public _1 _1 { get; set; }
 
         /// <summary>
         /// 2つ目のサーバーのストリーム情報
         /// </summary>
-        public _2? _2 { get; set; }
+        public _2 _2 { get; set; }
 
         /// <summary>
         /// 3つ目のサーバーのストリーム情報
         /// </summary>
-        public _3? _3 { get; set; }
+        public _3 _3 { get; set; }
 
         /// <summary>
         /// 4つ目のサーバーのストリーム情報
         /// </summary>
-        public _4? _4 { get; set; }
+        public _4 _4 { get; set; }
 
         /// <summary>
         /// 5つ目のサーバーのストリーム情報
         /// </summary>
-        public _5? _5 { get; set; }
+        public _5 _5 { get; set; }
     }
 
     /// <summary>
@@ -155,7 +155,7 @@
         /// <summary>
         /// ビットレート
         /// </summary>
-        public int? BITRATE { get; set; }
+        public int BITRATE { get; set; }
 
         /// <summary>
         /// 聴いている人数
@@ -171,7 +171,7 @@
         /// <summary>
         /// ビットレート
         /// </summary>
-        public int? BITRATE { get; set; }
+        public int BITRATE { get; set; }
 
         /// <summary>
         /// 聴いている人数
@@ -187,12 +187,12 @@
         /// <summary>
         /// タイトル
         /// </summary>
-        public string? TITLE { get; set; }
+        public string TITLE { get; set; }
 
         /// <summary>
         /// アーティスト名
         /// </summary>
-        public string? ARTIST { get; set; }
+        public string ARTIST { get; set; }
 
         /// <summary>
         /// アルバム名
@@ -202,12 +202,12 @@
         /// <summary>
         /// リリース年
         /// </summary>
-        public string? YEAR { get; set; }
+        public string YEAR { get; set; }
 
         /// <summary>
         /// サークル名
         /// </summary>
-        public string? CIRCLE { get; set; }
+        public string CIRCLE { get; set; }
     }
 
     /// <summary>
@@ -254,17 +254,17 @@
         /// <summary>
         /// アルバムID
         /// </summary>
-        public int? ALBUMID { get; set; }
+        public int ALBUMID { get; set; }
 
         /// <summary>
         /// 評価
         /// </summary>
-        public string? RATING { get; set; }
+        public string RATING { get; set; }
 
         /// <summary>
         /// タイムス評価
         /// </summary>
-        public int? TIMESRATED { get; set; }
+        public int TIMESRATED { get; set; }
     }
 
     /// <summary>
@@ -275,22 +275,22 @@
         /// <summary>
         /// サークルのリンク
         /// </summary>
-        public string? CIRCLELINK { get; set; }
+        public string CIRCLELINK { get; set; }
 
         /// <summary>
         /// アルバムアートのファイル名
         /// </summary>
-        public string? ALBUMART { get; set; }
+        public string ALBUMART { get; set; }
 
         /// <summary>
         /// サークルのアートワーク
         /// </summary>
-        public string? CIRCLEART { get; set; }
+        public string CIRCLEART { get; set; }
 
         /// <summary>
         /// オフセット
         /// </summary>
-        public string? OFFSET { get; set; }
+        public string OFFSET { get; set; }
 
         /// <summary>
         /// オフタイム

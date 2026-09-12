@@ -5,7 +5,7 @@ namespace SharpGR.Helper
     /// <summary>
     /// メッセージボックスを表示するためのヘルパーです
     /// </summary>
-    public class MessageBoxHelper
+    public static class MessageBoxHelper
     {
         /// <summary>
         /// 情報メッセージボックスを表示するためのヘルパーメソッドです
@@ -33,6 +33,15 @@ namespace SharpGR.Helper
         public static void ShowErrorMessageBox(string errorMessage)
         {
             MessageBox.Show(errorMessage, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        /// <summary>
+        /// 例外内容を表示するエラーメッセージボックスを表示するためのヘルパーメソッドです
+        /// </summary>
+        /// <param name="exception">表示する例外オブジェクト</param>
+        public static void ShowExceptionMessageBox(Exception exception)
+        {
+            MessageBox.Show($"例外内容：{exception.Message}{Environment.NewLine}スタックトレース：{exception.StackTrace}", "例外エラー", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

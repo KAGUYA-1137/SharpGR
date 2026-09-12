@@ -20,7 +20,7 @@ namespace SharpGR.ViewModels
         /// プロパティが変更されたときに発生します通常は <see cref="SetProperty{T}"/> メソッドを通じて発行されます
         /// UI スレッドでの通知を強制したい場合は <see cref="Dispatcher"/> を用いて発行する実装に変更してください
         /// </remarks>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
         /// 指定したフィールドを新しい値に設定し、値が変化した場合に <see cref="PropertyChanged"/> イベントを発行します
