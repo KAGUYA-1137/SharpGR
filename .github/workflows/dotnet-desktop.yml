@@ -1,0 +1,57 @@
+name: .NET Core Desktop Release
+
+on:
+  push:
+    branches: [ "master" ]
+
+# リリース作成権限の付与
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: SharpGR/SharpGR.csproj
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Publish application
+      run: dotnet publish ${{ env.Solution_Name }} -c ${{ matrix.configuration }} --no-restore -o ./publish
+
+    # 成果物をZIPにまとめる
+    - name: Compress publish folder
+      run: Compress-Archive -Path ./publish/* -DestinationPath ./SharpGR-v1.0.${{ github.run_number }}.zip
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SharpGR-App-${{ matrix.configuration }}
+        path: ./publish/
+
+    # GitHub Releases への自動公開
+    - name: Create GitHub Release
+      if: github.event_name == 'push'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: Release v1.0.${{ github.run_number }}
+        generate_release_notes: true
+        files: ./SharpGR-v1.0.${{ github.run_number }}.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
